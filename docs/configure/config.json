@@ -1,0 +1,14 @@
+{
+    "SERVER_ID": "abc123",
+    "HEARTBEAT": {
+        "interval": 3
+    },
+    "LOG": {
+        "console": false,
+        "level": "DEBUG",
+        "path": "/var/log/servers/Quant",
+        "name": "quant.log",
+        "clear": true,
+        "backup_count": 5
+    }
+}
