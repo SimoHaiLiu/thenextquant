@@ -23,9 +23,9 @@ config.abc
 
 示例：
 ```json
-	{
-		"SERVER_ID": "5b16406f9870140001c29607"
-	}
+{
+    "SERVER_ID": "5b16406f9870140001c29607"
+}
 ```
 
 
@@ -34,9 +34,9 @@ config.abc
 
 示例：
 ```json
-	{
-		"RUN_TIME_UPDATE": true
-	}
+{
+    "RUN_TIME_UPDATE": true
+}
 ```
 
 
@@ -45,14 +45,14 @@ RabbitMQ配置。
 
 **示例**:
 ```json
-	{
-		"RABBITMQ": {
-			"host": "127.0.0.1",
-			"port": 5672,
-			"username": "quant",
-			"password": "test123456"
-		}
-	}
+{
+    "RABBITMQ": {
+        "host": "127.0.0.1",
+        "port": 5672,
+        "username": "quant",
+        "password": "test123456"
+    }
+}
 ```
 
 **配置说明**:
@@ -67,14 +67,14 @@ MongoDB配置。
 
 **示例**:
 ```json
-	{
-		"MONGODB": {
-			"host": "127.0.0.1",
-			"port": 5672,
-			"username": "quant",
-			"password": "test123456"
-		}
-	}
+{
+    "MONGODB": {
+        "host": "127.0.0.1",
+        "port": 5672,
+        "username": "quant",
+        "password": "test123456"
+    }
+}
 ```
 
 **配置说明**:
@@ -89,13 +89,13 @@ Redis配置。
 
 **示例**:
 ```json
-	{
-		"REDIS": {
-			"host": "127.0.0.1",
-			"port": 5672,
-			"password": "test123456"
-		}
-	}
+{
+    "REDIS": {
+        "host": "127.0.0.1",
+        "port": 5672,
+        "password": "test123456"
+    }
+}
 ```
 
 **配置说明**:
@@ -109,16 +109,16 @@ Redis配置。
 
 **示例**:
 ```json
-    {
-        "LOG": {
-           "console": false,
-           "level": "DEBUG",
-           "path": "/var/log/servers/Quant",
-           "name": "quant.log",
-           "clear": true,
-           "backup_count": 5
-       } 
+{
+    "LOG": {
+        "console": false,
+        "level": "DEBUG",
+        "path": "/var/log/servers/Quant",
+        "name": "quant.log",
+        "clear": true,
+        "backup_count": 5
     }
+}
 ```
 
 **配置说明**:
@@ -135,12 +135,12 @@ Redis配置。
 
 **示例**:
 ```json
-	{
-		"HEARTBEAT": {
-            "interval": 3,
-            "broadcast": 5
-        }
-	}
+{
+    "HEARTBEAT": {
+        "interval": 3,
+        "broadcast": 5
+    }
+}
 ```
 
 **配置说明**:
