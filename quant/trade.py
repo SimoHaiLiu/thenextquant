@@ -56,9 +56,9 @@ class Trade:
         heartbeat.register(self.check_order_update, self._order_update_interval)
 
         # 定时回调 请求登陆
-        self._login_task_id = heartbeat.register(self.login, 1)
-        self._is_logined = False  # 账户是否登录
-        self._is_logining = False  # 账户是否正在登陆
+        self._login_task_id = heartbeat.register(self.auth, 1)
+        self._is_logined = False  # 账户是否授权
+        self._is_logining = False  # 账户是否正在授权
 
     @property
     def orders(self):
@@ -73,7 +73,7 @@ class Trade:
         self._callback_funcs.append(callback)
 
     @decorator.async_method_locker("Trade.login")
-    async def login(self, *args, **kwargs):
+    async def auth(self, *args, **kwargs):
         """ 登陆账户
         * NOTE: 和TradeProxy建立连接之后，将立即回执行登陆请求
         """
@@ -90,11 +90,11 @@ class Trade:
         }
         ok, _, result = await agent.do_request(const.AGENT_OPTION_AUTH, params)
         if not ok:
-            logger.error("login error!", "platform:", self._platform, "account:", self._account, "result:", result,
+            logger.error("auth error!", "platform:", self._platform, "account:", self._account, "result:", result,
                          caller=self)
         else:
             self._is_logined = True
-            logger.debug("login success!", "platform:", self._platform, "account:", self._account, caller=self)
+            logger.debug("auth success!", "platform:", self._platform, "account:", self._account, caller=self)
         self._is_logining = False
 
     async def create_order(self, action, price, quantity, order_type=ORDER_TYPE_LMT):
@@ -104,6 +104,9 @@ class Trade:
         @param quantity 委托数量
         @param order_type 委托单类型 LMT限价单/MKT市价单
         """
+        if not self._is_logined:
+            logger.warn("not auth! platform:", self._platform, "account:", self._account, caller=self)
+            return
         if action not in [ORDER_ACTION_BUY, ORDER_ACTION_SELL]:
             logger.error('action error! action:', action, caller=self)
             return
@@ -151,6 +154,9 @@ class Trade:
         @param order_nos 委托单号（支持传入单个或多个）
         @return success, failed 撤单成功的订单号列表，撤单失败的订单号列表
         """
+        if not self._is_logined:
+            logger.warn("not auth! platform:", self._platform, "account:", self._account, caller=self)
+            return
         params = {
             "symbol": self._symbol,
             "order_nos": list(order_nos)
@@ -165,6 +171,8 @@ class Trade:
     async def check_order_update(self, *args, **kwargs):
         """ 检查订单更新
         """
+        if not self._is_logined:
+            return
         # 获取需要查询的订单列表
         order_nos = list(self._orders.keys())
         logger.info('length:', len(order_nos), 'orders:', order_nos, caller=self)
@@ -238,6 +246,9 @@ class Trade:
     async def get_open_orders(self):
         """ 获取未完全成交的订单
         """
+        if not self._is_logined:
+            logger.warn("not auth! platform:", self._platform, "account:", self._account, caller=self)
+            return
         params = {
             "symbol": self._symbol
         }

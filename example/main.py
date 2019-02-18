@@ -4,7 +4,7 @@ import sys
 
 
 def initialize():
-    from strategy import MyStrategy
+    from strategy.strategy import MyStrategy
     s = MyStrategy()
     s.initialize()
 

@@ -9,15 +9,13 @@
 	- python 3.5.3 或以上版本
 
 - 依赖python三方包
-	- aioamqp>=0.10.0
-	- aiohttp>=3.2.1 `可选`
-	- motor>=1.2.1 `可选`
+	- aiohttp>=3.2.1
 
 
 ### 安装
 使用 `pip` 可以简单方便安装:
 ```text
-pip install -e git+https://github.com/Demon-Hunter/TheNextQuant.git#egg=thenextquant
+pip install -e git+https://github.com/TheNextQuant/thenextquant.git#egg=thenextquant
 ```
 
 or

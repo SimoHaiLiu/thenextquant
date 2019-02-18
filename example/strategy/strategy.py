@@ -22,7 +22,7 @@ class MyStrategy:
         self.symbol = config.symbol
         self.name = config.strategy
 
-        self.order_manager = None
+        self.trader = None  # 交易模块
 
     def initialize(self):
         """ 初始化
