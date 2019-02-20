@@ -36,10 +36,10 @@ CUSTOM = "custom"
 
 
 # 行情类型
-MARKET_TYPE_ORDERBOOK = "market.orderbook"  # 订单薄
-MARKET_TYPE_KLINE = "market.kline"  # K线
-MARKET_TYPE_TICKER = "market.ticker"  # ticker
-MARKET_TYPE_TRADE = "market.trade"  # trade
+MARKET_TYPE_ORDERBOOK = "orderbook"  # 订单薄
+MARKET_TYPE_KLINE = "kline"  # K线
+MARKET_TYPE_TICKER = "ticker"  # ticker
+MARKET_TYPE_TRADE = "trade"  # trade
 
 
 # 代理操作类型

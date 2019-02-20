@@ -12,25 +12,22 @@ import asyncio
 
 from quant import const
 from quant.utils import tools
-from quant.config import config
 from quant.utils.websocket import Websocket
-
-
-__all__ = ("agent", )
 
 
 class Agent(Websocket):
     """ websocket长连接代理
     """
 
-    def __init__(self):
+    def __init__(self, wss, proxy=None):
         """ 初始化
+        @param wss websocket地址
+        @param proxy HTTP代理
         """
         self._queries = {}  # 未完成的请求对象 {"request_id": future}
         self._market_update_callbacks = []  # 行情更新回调函数列表
 
-        url = config.service.get("Agent", {}).get("wss", "wss://thenextquant.com/ws")
-        super(Agent, self).__init__(url)
+        super(Agent, self).__init__(wss, proxy)
         self.initialize()
 
     def register_market_update_callback(self, callback):
@@ -73,6 +70,3 @@ class Agent(Websocket):
             if f.done():
                 return
             f.set_result(msg)
-
-
-agent = Agent()

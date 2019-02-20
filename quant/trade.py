@@ -14,14 +14,12 @@ import asyncio
 from quant import const
 from quant.utils import tools
 from quant.utils import logger
+from quant.config import config
 from quant.utils import decorator
-from quant.utils.agent import agent
+from quant.utils.agent import Agent
 from quant.heartbeat import heartbeat
 from quant.order import Order, ORDER_TYPE_MKT, ORDER_TYPE_LMT, ORDER_ACTION_BUY, ORDER_ACTION_SELL, \
     ORDER_STATUS_SUBMITTED, ORDER_STATUS_CANCEL, ORDER_STATUS_DEAL, ORDER_STATUS_PARTDEAL, ORDER_STATUS_FAILED
-
-
-__all__ = ('Trade', )
 
 
 class Trade:
@@ -45,6 +43,9 @@ class Trade:
         self._symbol = symbol
         self._strategy = strategy
         self._order_update_interval = order_update_interval
+
+        url = config.service.get("Trade", {}).get("wss", "wss://thenextquant.com/ws/trade")
+        self._agent = Agent(url)
 
         # 订单对象
         self._orders = {}   # 订单列表 key:order_no, value:order_object
@@ -88,7 +89,7 @@ class Trade:
             "access_key": self._access_key,
             "secret_key": self._secret_key
         }
-        ok, _, result = await agent.do_request(const.AGENT_OPTION_AUTH, params)
+        ok, _, result = await self._agent.do_request(const.AGENT_OPTION_AUTH, params)
         if not ok:
             logger.error("auth error!", "platform:", self._platform, "account:", self._account, "result:", result,
                          caller=self)
@@ -124,7 +125,7 @@ class Trade:
             "quantity": quantity,
             "order_type": order_type
         }
-        success, _, result = await agent.do_request(const.AGENT_OPTION_CREATE_ORDER, params)
+        success, _, result = await self._agent.do_request(const.AGENT_OPTION_CREATE_ORDER, params)
         if not success:
             logger.error('create order error! strategy:', self._strategy, 'symbol:', self._symbol, 'action:', action,
                          'price:', price, 'quantity:', quantity, 'order_type:', order_type, caller=self)
@@ -161,7 +162,7 @@ class Trade:
             "symbol": self._symbol,
             "order_nos": list(order_nos)
         }
-        success, _, result = await agent.do_request(const.AGENT_OPTION_REVOKE_ORDER, params)
+        success, _, result = await self._agent.do_request(const.AGENT_OPTION_REVOKE_ORDER, params)
         if not success:
             logger.error("revoke order error! order_nos:", order_nos, "order_nos:", order_nos, caller=self)
             return [], list(order_nos)
@@ -187,7 +188,7 @@ class Trade:
                 "symbol": self._symbol,
                 "order_nos": nos
             }
-            success, _, results = await agent.do_request(const.AGENT_OPTION_ORDER_STATUS, params)
+            success, _, results = await self._agent.do_request(const.AGENT_OPTION_ORDER_STATUS, params)
             if not success:
                 logger.error("get order status error!", "symbol:", self._symbol, "order_nos:", order_nos,
                              "results:", results, caller=self)
@@ -252,7 +253,7 @@ class Trade:
         params = {
             "symbol": self._symbol
         }
-        success, _, results = await agent.do_request(const.AGENT_OPTION_OPEN_ORDERS, params)
+        success, _, results = await self._agent.do_request(const.AGENT_OPTION_OPEN_ORDERS, params)
         if not success:
             logger.error("get open orders error! symbol:", self._symbol, caller=self)
             return None

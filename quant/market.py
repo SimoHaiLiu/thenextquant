@@ -10,7 +10,8 @@ Update: None
 
 import asyncio
 
-from quant.utils.agent import agent
+from quant.config import config
+from quant.utils.agent import Agent
 
 
 class Market:
@@ -18,7 +19,9 @@ class Market:
     """
 
     def __init__(self):
-        agent.register_market_update_callback(self.on_event_market)
+        url = config.service.get("Market", {}).get("wss", "wss://thenextquant.com/ws/market")
+        self._agent = Agent(url)
+        self._agent.register_market_update_callback(self.on_event_market)
         self._callbacks = {}  # 行情订阅回调函数
 
     def subscribe(self, market_type, platform, symbol, callback):
@@ -36,7 +39,7 @@ class Market:
             "platform": platform,
             "symbol": symbol
         }
-        asyncio.get_event_loop().create_task(agent.do_request("subscribe", params))
+        asyncio.get_event_loop().create_task(self._agent.do_request("subscribe", params))
 
     def unsubscribe(self, market_type, platform, symbol):
         """ 取消订阅行情
@@ -49,7 +52,7 @@ class Market:
             "platform": platform,
             "symbol": symbol
         }
-        asyncio.get_event_loop().create_task(agent.do_request("unsubscribe", params))
+        asyncio.get_event_loop().create_task(self._agent.do_request("unsubscribe", params))
 
     async def on_event_market(self, market_type, data):
         """ 行情数据回调
