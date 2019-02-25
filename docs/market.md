@@ -17,7 +17,7 @@ from quant.market import Market
 # 初始化
 market = Market()
 
-# 订阅订单薄行情
+# 订阅订单薄行情，注意此处注册的回调函数是`async` 异步函数，回调参数为 `orderbook` 对象，类型为字典，数据结构查看下边的介绍。
 async def on_event_orderbook_update(orderbook): pass
 market.subscribe(const.MARKET_TYPE_ORDERBOOK, const.BINANCE, "ETH/BTC", on_event_orderbook_update)
 
