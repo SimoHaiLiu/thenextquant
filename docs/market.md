@@ -32,7 +32,7 @@ market.unsubscribe(const.MARKET_TYPE_ORDERBOOK, const.BINANCE, "ETH/BTC")
 
 所有交易平台的行情，全部使用统一的数据结构；
 
-##### 订单薄(Orderbook)
+#### 订单薄(Orderbook)
 ```json
 {
     "platform": "binance",
@@ -55,7 +55,7 @@ market.unsubscribe(const.MARKET_TYPE_ORDERBOOK, const.BINANCE, "ETH/BTC")
 - timestamp `int` 时间戳(毫秒)
 
 
-##### K线(KLine)
+#### K线(KLine)
 ```json
 {
     "platform": "binance",
@@ -80,7 +80,7 @@ market.unsubscribe(const.MARKET_TYPE_ORDERBOOK, const.BINANCE, "ETH/BTC")
 - timestamp `int` 时间戳(毫秒)
 
 
-##### 交易(Ticker)
+#### 交易(Ticker)
 ```json
 {
     "platform": "binance",
@@ -103,7 +103,7 @@ market.unsubscribe(const.MARKET_TYPE_ORDERBOOK, const.BINANCE, "ETH/BTC")
 - timestamp `int` 时间戳(毫秒)
 
 
-##### 成交(Trade)
+#### 成交(Trade)
 ```json
 {
     "platform": "binance",
