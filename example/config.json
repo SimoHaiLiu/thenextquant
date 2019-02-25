@@ -3,11 +3,14 @@
         "interval": 1
     },
     "SERVICE": {
-        "Agent": {
-            "wss": "wss://thenextquant.com/ws"
+        "Market": {
+            "wss": "wss://thenextquant.com/ws/market"
+        },
+        "Trade": {
+            "wss": "wss://thenextquant.com/ws/trade"
         }
     },
-    "PLATFORMS": {
+    "platforms": {
         "binance": {
             "account": "abc123@163.com",
             "access_key": "ACCESS KEY",
