@@ -1,15 +1,4 @@
 {
-    "HEARTBEAT": {
-        "interval": 1
-    },
-    "SERVICE": {
-        "Market": {
-            "wss": "wss://thenextquant.com/ws/market"
-        },
-        "Trade": {
-            "wss": "wss://thenextquant.com/ws/trade"
-        }
-    },
     "platforms": {
         "binance": {
             "account": "abc123@163.com",

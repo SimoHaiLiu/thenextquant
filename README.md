@@ -56,6 +56,10 @@ python src/main.py config.json
 
 ### 使用文档
 
+本框架使用的是Python原生异步库(asyncio)实现异步事件驱动，所以在使用之前，需要先了解 [Python Asyncio](https://docs.python.org/3/library/asyncio.html)。
+
 - [服务配置](docs/configure/README.md)
 - [日志打印](docs/others/logger.md)
+- [交易行情](docs/market.md)
+- [交易]()
 - [定时任务 & 服务器心跳](docs/others/tasks.md)
