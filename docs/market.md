@@ -1,6 +1,6 @@
 ## 行情
 
-通过行情模块(market)，可以订阅任意交易所的任意交易对的实时行情，包括订单薄(Orderbook)、K线(KLine)、成交(Trade)、交易(Ticker)，  
+通过行情模块(market)，可以订阅任意交易所的任意交易对的实时行情，包括订单薄(Orderbook)、K线(KLine)、成交(Trade)、交易(Ticker)，
 根据不同交易所提供的行情信息，实时将行情信息推送给策略；
 
 框架通过一条websocket长连接和 `Agent` 代理服务器建立连接，并发起 `订阅(Subscribe)` 和 `取消订阅(Unsubscribe)` 请求；  
