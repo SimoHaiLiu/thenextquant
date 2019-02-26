@@ -17,10 +17,10 @@ class MyStrategy:
     def __init__(self):
         """ 初始化
         """
-        self.platfrom = BINANCE
-        self.account = config.platforms.get(self.platfrom, {}).get("account")
-        self.access_key = config.platforms.get(self.platfrom, {}).get("access_key")
-        self.secret_key = config.platforms.get(self.platfrom, {}).get("secret_key")
+        self.platform = BINANCE
+        self.account = config.platforms.get(self.platform, {}).get("account")
+        self.access_key = config.platforms.get(self.platform, {}).get("access_key")
+        self.secret_key = config.platforms.get(self.platform, {}).get("secret_key")
         self.symbol = config.symbol
         self.name = config.strategy
 
@@ -34,7 +34,7 @@ class MyStrategy:
         """ 初始化
         """
         self.market = Market()
-        self.trader = Trade(self.platfrom, self.account, self.access_key, self.secret_key, self.symbol, self.name)
+        self.trader = Trade(self.platform, self.account, self.access_key, self.secret_key, self.symbol, self.name)
 
         # 订阅行情
         self.market.subscribe(const.MARKET_TYPE_ORDERBOOK, const.BINANCE, self.symbol, self.on_event_orderbook_update)
