@@ -6,6 +6,17 @@
 框架通过一条websocket长连接和 `Agent` 代理服务器建立连接，并发起 `订阅(Subscribe)` 和 `取消订阅(Unsubscribe)` 请求；  
 `Agent`代理服务默认可以使用 `wss://thenextquant.com/ws/market` 进行测试（有部分使用限制）；
 
+- Agent代理服务器配置
+```json
+{
+    "SERVICE": {
+        "Market": {
+            "wss": "wss://thenextquant.com/ws/market"
+        }
+    }
+}
+```
+
 
 ### 行情模块使用
 
