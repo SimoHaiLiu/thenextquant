@@ -1,5 +1,4 @@
 {
-    "SERVER_ID": "abc123",
     "HEARTBEAT": {
         "interval": 3
     },

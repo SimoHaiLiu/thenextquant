@@ -10,8 +10,8 @@
 ```python
 from quant.config import config
 
-config.server_id
-config.abc
+config.name  # 使用配置里的name字段
+config.abc  # 使用配置里的abd字段
 ```
 
 ## 系统配置参数
