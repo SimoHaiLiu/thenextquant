@@ -18,93 +18,28 @@ config.abc  # 使用配置里的abd字段
 > 所有系统配置参数均为 `大写字母` 为key;  
 > 所有系统配置参数均为 `可选`;  
 
-##### 1. SERVER_ID
-服务id，唯一指定每个运行的服务。  
+##### 1. SERVICE
+配置需要使用的代理服务，如果不配置，将使用默认的示例配置如下。  
 
 示例：
 ```json
 {
-    "SERVER_ID": "5b16406f9870140001c29607"
-}
-```
-
-
-##### 1. RUN_TIME_UPDATE
-是否允许动态更新服务配置。  
-
-示例：
-```json
-{
-    "RUN_TIME_UPDATE": true
-}
-```
-
-
-##### 3. RABBITMQ
-RabbitMQ配置。
-
-**示例**:
-```json
-{
-    "RABBITMQ": {
-        "host": "127.0.0.1",
-        "port": 5672,
-        "username": "quant",
-        "password": "test123456"
+    "SERVICE": {
+        "Market": {
+            "wss": "wss://thenextquant.com/ws/market"
+        },
+        "Trade": {
+            "wss": "wss://thenextquant.com/ws/trade"
+        }
     }
 }
 ```
-
 **配置说明**:
-- host `string` host地址
-- port `int` 端口
-- username `string` 用户名
-- password `string` 密码
+- Market `dict` 行情代理服务配置，可以订阅任意交易平台的任意行情数据
+- Trade `dict` 交易代理服务配置，可以在任意平台的任意交易区发起交易
 
 
-##### 4. MONGODB
-MongoDB配置。
-
-**示例**:
-```json
-{
-    "MONGODB": {
-        "host": "127.0.0.1",
-        "port": 5672,
-        "username": "quant",
-        "password": "test123456"
-    }
-}
-```
-
-**配置说明**:
-- host `string` host地址
-- port `int` 端口
-- username `string` 用户名
-- password `string` 密码
-
-
-##### 5. REDIS
-Redis配置。
-
-**示例**:
-```json
-{
-    "REDIS": {
-        "host": "127.0.0.1",
-        "port": 5672,
-        "password": "test123456"
-    }
-}
-```
-
-**配置说明**:
-- host `string` host地址
-- port `int` 端口
-- password `string` 密码
-
-
-##### 6. LOG
+##### 2. LOG
 日志配置。包含如下配置：
 
 **示例**:
@@ -130,7 +65,7 @@ Redis配置。
 - backup_count `int` 日志保存个数（日志按天分割，默认保留5天日志, `0`为永久保存）
 
 
-##### 7. HEARTBEAT
+##### 3. HEARTBEAT
 服务心跳配置。
 
 **示例**:
@@ -138,7 +73,7 @@ Redis配置。
 {
     "HEARTBEAT": {
         "interval": 3,
-        "broadcast": 5
+        "broadcast": 0
     }
 }
 ```

@@ -1,4 +1,12 @@
 {
+    "SERVICE": {
+        "Market": {
+            "wss": "wss://thenextquant.com/ws/market"
+        },
+        "Trade": {
+            "wss": "wss://thenextquant.com/ws/trade"
+        }
+    },
     "HEARTBEAT": {
         "interval": 3
     },
