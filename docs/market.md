@@ -36,7 +36,14 @@ market.subscribe(const.MARKET_TYPE_ORDERBOOK, const.BINANCE, "ETH/BTC", on_event
 market.unsubscribe(const.MARKET_TYPE_ORDERBOOK, const.BINANCE, "ETH/BTC")
 ```
 
-> 使用同样的方式，可以订阅 KLine(const.MARKET_TYPE_KLINE)、Trade(const.MARKET_TYPE_TRADE)、Ticker(const.MARKET_TYPE_TICKER);
+> 使用同样的方式，可以订阅任意的行情
+```python
+from quant import const
+
+const.MARKET_TYPE_KLINE  # K线(KLine)
+const.MARKET_TYPE_TRADE  # 实时成交(Trade)
+const.MARKET_TYPE_TICKER  # 实时挂单(Ticker)
+```
 
 
 ### 行情数据结构
