@@ -63,3 +63,7 @@ python src/main.py config.json
 - [行情](docs/market.md)
 - [交易](docs/trade.md)
 - [定时任务 & 服务器心跳](docs/others/tasks.md)
+
+
+### FAQ
+- [FAQ](docs/faq.md)
