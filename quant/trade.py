@@ -128,7 +128,8 @@ class Trade:
         success, _, result = await self._agent.do_request(const.AGENT_OPTION_CREATE_ORDER, params)
         if not success:
             logger.error('create order error! strategy:', self._strategy, 'symbol:', self._symbol, 'action:', action,
-                         'price:', price, 'quantity:', quantity, 'order_type:', order_type, caller=self)
+                         'price:', price, 'quantity:', quantity, 'order_type:', order_type, "result:", result,
+                         caller=self)
             return None
 
         order_no = result["order_no"]
