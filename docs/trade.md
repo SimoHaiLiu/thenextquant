@@ -47,7 +47,7 @@ trader.register_callback(on_event_order_update)
 action = order.ORDER_ACTION_BUY  # 买单
 price = "11.11"  # 委托价格
 quantity = "22.22"  # 委托数量
-order_type = order.ORDER_TYPE_LMT  # 限价单
+order_type = order.ORDER_TYPE_LIMIT  # 限价单
 order_no = await trader.create_order(action, price, quantity, order_type)  # 注意，此函数需要在 `async` 异步函数里执行
 
 
@@ -71,8 +71,8 @@ orders = trader.orders  # orders是一个dict，key为order_no，value为order�
 ```python
 from quant import order
 
-order.ORDER_TYPE_LMT  # 限价单
-order.ORDER_TYPE_MKT  # 市价单
+order.ORDER_TYPE_LIMIT  # 限价单
+order.ORDER_TYPE_MARKET  # 市价单
 ```
 
 - 订单操作
@@ -87,12 +87,12 @@ order.ORDER_ACTION_SELL  # 卖出
 ```python
 from quant import order
 
-order.ORDER_STATUS_NONE = 0  # 新创建的订单，无状态
-order.ORDER_STATUS_SUBMITTED = 1  # 已提交
-order.ORDER_STATUS_PARTDEAL = 2  # 部分处理
-order.ORDER_STATUS_DEAL = 3  # 处理
-order.ORDER_STATUS_CANCEL = 4  # 取消
-order.ORDER_STATUS_FAILED = 5  # 失败订单
+order.ORDER_STATUS_NONE = "NONE"  # 新创建的订单，无状态
+order.ORDER_STATUS_SUBMITTED = "SUBMITTED"  # 已提交
+order.ORDER_STATUS_PARTIAL_FILLED = "PARTIAL-FILLED"  # 部分处理
+order.ORDER_STATUS_FILLED = "FILLED"  # 处理
+order.ORDER_STATUS_CANCELED = "CANCELED"  # 取消
+order.ORDER_STATUS_FAILED = "FAILED"  # 失败订单
 ```
 
 - 订单对象

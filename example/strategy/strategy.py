@@ -6,7 +6,7 @@ from quant import const
 from quant.utils import tools
 from quant.utils import logger
 from quant.config import config
-from quant.order import ORDER_ACTION_BUY, ORDER_STATUS_FAILED, ORDER_STATUS_CANCEL, ORDER_STATUS_DEAL
+from quant.order import ORDER_ACTION_BUY, ORDER_STATUS_FAILED, ORDER_STATUS_CANCELED, ORDER_STATUS_FILLED
 from quant.market import Market
 from quant.trade import Trade
 from quant.const import BINANCE
@@ -74,5 +74,5 @@ class MyStrategy:
         logger.info("order update:", order, caller=self)
 
         # 如果订单失败、订单取消、订单完成交易
-        if order.status in [ORDER_STATUS_FAILED, ORDER_STATUS_CANCEL, ORDER_STATUS_DEAL]:
+        if order.status in [ORDER_STATUS_FAILED, ORDER_STATUS_CANCELED, ORDER_STATUS_FILLED]:
             self.order_no = None

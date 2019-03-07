@@ -18,8 +18,8 @@ from quant.config import config
 from quant.utils import decorator
 from quant.utils.agent import Agent
 from quant.heartbeat import heartbeat
-from quant.order import Order, ORDER_TYPE_MKT, ORDER_TYPE_LMT, ORDER_ACTION_BUY, ORDER_ACTION_SELL, \
-    ORDER_STATUS_SUBMITTED, ORDER_STATUS_CANCEL, ORDER_STATUS_DEAL, ORDER_STATUS_PARTDEAL, ORDER_STATUS_FAILED
+from quant.order import Order, ORDER_TYPE_MARKET, ORDER_TYPE_LIMIT, ORDER_ACTION_BUY, ORDER_ACTION_SELL, \
+    ORDER_STATUS_SUBMITTED, ORDER_STATUS_CANCELED, ORDER_STATUS_FILLED, ORDER_STATUS_PARTIAL_FILLED, ORDER_STATUS_FAILED
 
 
 class Trade:
@@ -98,7 +98,7 @@ class Trade:
             logger.debug("auth success!", "platform:", self._platform, "account:", self._account, caller=self)
         self._is_logining = False
 
-    async def create_order(self, action, price, quantity, order_type=ORDER_TYPE_LMT):
+    async def create_order(self, action, price, quantity, order_type=ORDER_TYPE_LIMIT):
         """ 创建委托单
         @param action 操作类型 BUY买/SELL卖
         @param price 委托价格
@@ -111,7 +111,7 @@ class Trade:
         if action not in [ORDER_ACTION_BUY, ORDER_ACTION_SELL]:
             logger.error('action error! action:', action, caller=self)
             return
-        if order_type not in [ORDER_TYPE_MKT, ORDER_TYPE_LMT]:
+        if order_type not in [ORDER_TYPE_MARKET, ORDER_TYPE_LIMIT]:
             logger.error('order_type error! order_type:', order_type, caller=self)
             return
 
@@ -217,14 +217,14 @@ class Trade:
                 if order.status != status:
                     status_updated = True
             # 订单部分成交
-            elif status == ORDER_STATUS_PARTDEAL:
+            elif status == ORDER_STATUS_PARTIAL_FILLED:
                 if order.remain != float(remain):
                     status_updated = True
             # 订单成交完成
-            elif status == ORDER_STATUS_DEAL:
+            elif status == ORDER_STATUS_FILLED:
                 status_updated = True
             # 订单取消
-            elif status == ORDER_STATUS_CANCEL:
+            elif status == ORDER_STATUS_CANCELED:
                 status_updated = True
             # 订单成交失败
             elif status == ORDER_STATUS_FAILED:
@@ -242,7 +242,7 @@ class Trade:
                     await asyncio.get_event_loop().create_task(func(copy.copy(order)))
 
                 # 删除已完成订单
-                if order.status in [ORDER_STATUS_DEAL, ORDER_STATUS_CANCEL, ORDER_STATUS_FAILED]:
+                if order.status in [ORDER_STATUS_FILLED, ORDER_STATUS_CANCELED, ORDER_STATUS_FAILED]:
                     self._remove_order(order.order_no)
 
     async def get_open_orders(self):
