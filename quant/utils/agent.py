@@ -25,24 +25,26 @@ class Agent(Websocket):
         @param proxy HTTP代理
         """
         self._queries = {}  # 未完成的请求对象 {"request_id": future}
-        self._market_update_callbacks = []  # 行情更新回调函数列表
+        self._update_callbacks = []  # 推送更新回调函数列表
 
         super(Agent, self).__init__(wss, proxy)
         self.initialize()
 
-    def register_market_update_callback(self, callback):
+    def register_update_callback(self, callback):
         """ 注册行情更新回调
         """
-        self._market_update_callbacks.append(callback)
+        self._update_callbacks.append(callback)
 
-    async def do_request(self, option, params):
+    async def do_request(self, type_, option, params):
         """ 发送请求
+        @param type_ 消息类型
         @param option 操作类型
         @param params 请求参数
         """
         request_id = tools.get_uuid1()
         data = {
             "request_id": request_id,
+            "type": type_,
             "option": option,
             "params": params
         }
@@ -58,11 +60,11 @@ class Agent(Websocket):
     async def process(self, msg):
         """ 处理消息
         """
-        if msg["option"] == const.AGENT_OPTION_UPDATE:
-            if msg["type"] in [const.MARKET_TYPE_ORDERBOOK, const.MARKET_TYPE_TICKER, const.MARKET_TYPE_KLINE,
-                               const.MARKET_TYPE_TRADE]:
-                for callback in self._market_update_callbacks:
-                    await asyncio.get_event_loop().create_task(callback(msg["type"], msg["data"]))
+        if msg["option"] in [const.AGENT_MSG_OPT_UPDATE_ORDERBOOK, const.AGENT_MSG_OPT_UPDATE_KLINE,
+                             const.AGENT_MSG_OPT_UPDATE_TICKER, const.AGENT_MSG_OPT_UPDATE_TRADE,
+                             const.AGENT_MSG_OPT_UPDATE_ASSET, const.AGENT_MSG_OPT_UPDATE_ORDER]:
+            for callback in self._update_callbacks:
+                await asyncio.get_event_loop().create_task(callback(msg["type"], msg["option"], msg["data"]))
             return
         request_id = msg["request_id"]
         if request_id in self._queries:

@@ -10,6 +10,8 @@ Update: None
 
 import asyncio
 
+from quant import const
+from quant.utils import logger
 from quant.config import config
 from quant.utils.agent import Agent
 
@@ -18,10 +20,15 @@ class Market:
     """ 行情数据订阅模块
     """
 
+    ORDERBOOK = "orderbook"
+    KLINE = "kline"
+    TICKER = "ticker"
+    TRADE = "trade"
+
     def __init__(self):
         url = config.service.get("Market", {}).get("wss", "wss://thenextquant.com/ws/market")
         self._agent = Agent(url)
-        self._agent.register_market_update_callback(self.on_event_market)
+        self._agent.register_update_callback(self._on_event_market)
         self._callbacks = {}  # 行情订阅回调函数
 
     def subscribe(self, market_type, platform, symbol, callback):
@@ -31,15 +38,26 @@ class Market:
         @param symbol 交易对
         @param callback 回调函数
         """
-        ok = self._set_callback(market_type, platform, symbol, callback)
+        if market_type == self.ORDERBOOK:
+            op = const.AGENT_MSG_OPT_SUB_ORDERBOOK
+        elif market_type == self.KLINE:
+            op = const.AGENT_MSG_OPT_SUB_KLINE
+        elif market_type == self.TICKER:
+            op = const.AGENT_MSG_OPT_SUB_TICKER
+        elif market_type == self.TRADE:
+            op = const.AGENT_MSG_OPT_SUB_TRADE
+        else:
+            logger.error("market type error! market_type:", market_type, caller=self)
+            return
+
+        ok = self._set_callback(op, platform, symbol, callback)
         if ok:
             return
         params = {
-            "type": market_type,
             "platform": platform,
             "symbol": symbol
         }
-        asyncio.get_event_loop().create_task(self._agent.do_request("subscribe", params))
+        asyncio.get_event_loop().create_task(self._agent.do_request(const.AGENT_MSG_TYPE_MARKET, op, params))
 
     def unsubscribe(self, market_type, platform, symbol):
         """ 取消订阅行情
@@ -47,17 +65,30 @@ class Market:
         @param platform 交易平台
         @param symbol 交易对
         """
+        if market_type == self.ORDERBOOK:
+            op = const.AGENT_MSG_OPT_UNSUB_ORDERBOOK
+        elif market_type == self.KLINE:
+            op = const.AGENT_MSG_OPT_UNSUB_KLINE
+        elif market_type == self.TICKER:
+            op = const.AGENT_MSG_OPT_UNSUB_TICKER
+        elif market_type == self.TRADE:
+            op = const.AGENT_MSG_OPT_UNSUB_TRADE
+        else:
+            logger.error("market type error! market_type:", market_type, caller=self)
+            return
         params = {
-            "type": market_type,
             "platform": platform,
             "symbol": symbol
         }
-        asyncio.get_event_loop().create_task(self._agent.do_request("unsubscribe", params))
+        asyncio.get_event_loop().create_task(self._agent.do_request(const.AGENT_MSG_TYPE_MARKET, op, params))
 
-    async def on_event_market(self, market_type, data):
+    async def _on_event_market(self, type_, option, data):
         """ 行情数据回调
+        @param type_ agent消息类型
+        @param option 操作类型
+        @param data 返回数据
         """
-        callbacks = self._get_callback(market_type, data["platform"], data["symbol"])
+        callbacks = self._get_callback(option, data["platform"], data["symbol"])
         for callback in callbacks:
             await asyncio.get_event_loop().create_task(callback(data))
 
@@ -78,6 +109,6 @@ class Market:
         callbacks = self._callbacks.get(key, [])
         return callbacks
 
-    def _generate_callback_key(self, market_type, platform, symbol):
-        key = "{t}_{p}_{s}".format(t=market_type, p=platform, s=symbol)
+    def _generate_callback_key(self, option, platform, symbol):
+        key = "{o}_{p}_{s}".format(o=option, p=platform, s=symbol)
         return key
