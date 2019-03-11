@@ -86,10 +86,11 @@ class Trade:
             return
         params = {
             "platform": self._platform,
+            "account": self._account,
             "access_key": self._access_key,
             "secret_key": self._secret_key
         }
-        ok, _, result = await self._agent.do_request(const.AGENT_OPTION_AUTH, params)
+        ok, _, result = await self._agent.do_request("trade", const.AGENT_MSG_OPT_AUTH, params)
         if not ok:
             logger.error("auth error!", "platform:", self._platform, "account:", self._account, "result:", result,
                          caller=self)
@@ -97,6 +98,22 @@ class Trade:
             self._is_logined = True
             logger.debug("auth success!", "platform:", self._platform, "account:", self._account, caller=self)
         self._is_logining = False
+
+    async def get_asset(self):
+        """ 获取当前资产信息
+        """
+        if not self._is_logined:
+            logger.warn("not auth! platform:", self._platform, "account:", self._account, caller=self)
+            return
+        params = {
+            "platform": self._platform,
+            "account": self._account
+        }
+        success, _, results = await self._agent.do_request("trade", const.AGENT_MSG_OPT_ASSET, params)
+        if not success:
+            logger.error("get asset error! platform:", self._platform, "account:", self._account, caller=self)
+            return None
+        return results
 
     async def create_order(self, action, price, quantity, order_type=ORDER_TYPE_LIMIT):
         """ 创建委托单
@@ -125,7 +142,7 @@ class Trade:
             "quantity": quantity,
             "order_type": order_type
         }
-        success, _, result = await self._agent.do_request(const.AGENT_OPTION_CREATE_ORDER, params)
+        success, _, result = await self._agent.do_request("trade", const.AGENT_MSG_OPT_CREATE_OREDER, params)
         if not success:
             logger.error('create order error! strategy:', self._strategy, 'symbol:', self._symbol, 'action:', action,
                          'price:', price, 'quantity:', quantity, 'order_type:', order_type, "result:", result,
@@ -163,7 +180,7 @@ class Trade:
             "symbol": self._symbol,
             "order_nos": list(order_nos)
         }
-        success, _, result = await self._agent.do_request(const.AGENT_OPTION_REVOKE_ORDER, params)
+        success, _, result = await self._agent.do_request("trade", const.AGENT_MSG_OPT_REVOKE_ORDER, params)
         if not success:
             logger.error("revoke order error! order_nos:", order_nos, "order_nos:", order_nos, caller=self)
             return [], list(order_nos)
@@ -189,7 +206,7 @@ class Trade:
                 "symbol": self._symbol,
                 "order_nos": nos
             }
-            success, _, results = await self._agent.do_request(const.AGENT_OPTION_ORDER_STATUS, params)
+            success, _, results = await self._agent.do_request("trade", const.AGENT_MSG_OPT_ORDER_STATUS, params)
             if not success:
                 logger.error("get order status error!", "symbol:", self._symbol, "order_nos:", order_nos,
                              "results:", results, caller=self)
@@ -254,11 +271,10 @@ class Trade:
         params = {
             "symbol": self._symbol
         }
-        success, _, results = await self._agent.do_request(const.AGENT_OPTION_OPEN_ORDERS, params)
+        success, _, results = await self._agent.do_request("trade", const.AGENT_MSG_OPT_OPEN_ORDERS, params)
         if not success:
             logger.error("get open orders error! symbol:", self._symbol, caller=self)
             return None
-        logger.info("symbol:", self._symbol, "open orders:", results, caller=self)
         return results
 
     async def _get_order_by_order_no(self, order_no):
