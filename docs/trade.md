@@ -37,11 +37,17 @@ access_key = "ABC123"  # API KEY
 secret_key = "abc123"  # SECRET KEY
 symbol = "ETH/BTC"  # 交易对
 name = "my_test_strategy"  # 自定义的策略名称
-trader = Trade(platform, account, access_key, secret_key, symbol, name)
 
 # 注册订单更新回调函数，注意此处注册的回调函数是 `async` 异步函数，回调参数为 `order` 对象，数据结构请查看下边的介绍。
-async def on_event_order_update(self, order): pass
-trader.register_callback(on_event_order_update)
+async def on_event_order_update(order): pass
+
+# 注册订单更新回调函数，注意此处注册的回调函数是 `async` 异步函数，回调参数为 `asset` 对象
+async def on_event_asset_update(asset): pass
+
+# 创建trade对象
+trader = Trade(platform, account, access_key, secret_key, symbol, name,
+                asset_update_callback=on_event_asset_update,
+                order_update_callback=on_event_order_update)
 
 # 下单
 action = order.ORDER_ACTION_BUY  # 买单

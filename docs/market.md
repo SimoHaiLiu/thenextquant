@@ -30,19 +30,20 @@ market = Market()
 
 # 订阅订单薄行情，注意此处注册的回调函数是`async` 异步函数，回调参数为 `orderbook` 对象，类型为字典，数据结构查看下边的介绍。
 async def on_event_orderbook_update(orderbook): pass
-market.subscribe(const.MARKET_TYPE_ORDERBOOK, const.BINANCE, "ETH/BTC", on_event_orderbook_update)
+market.subscribe(Market.ORDERBOOK, const.BINANCE, "ETH/BTC", on_event_orderbook_update)
 
 # 取消订阅订单薄行情
-market.unsubscribe(const.MARKET_TYPE_ORDERBOOK, const.BINANCE, "ETH/BTC")
+market.unsubscribe(Market.ORDERBOOK, const.BINANCE, "ETH/BTC")
 ```
 
 > 使用同样的方式，可以订阅任意的行情
 ```python
-from quant import const
+from quant.market import Market
 
-const.MARKET_TYPE_KLINE  # K线(KLine)
-const.MARKET_TYPE_TRADE  # 实时成交(Trade)
-const.MARKET_TYPE_TICKER  # 实时挂单(Ticker)
+Market.ORDERBOOK  # 订单薄(Orderbook)
+Market.KLINE  # K线(KLine)
+Market.TICKER  # K线(KLine)
+Market.TRADE  # 实时挂单(Ticker)
 ```
 
 
