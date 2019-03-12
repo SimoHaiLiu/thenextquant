@@ -65,5 +65,9 @@ python src/main.py config.json
 - [定时任务 & 服务器心跳](docs/others/tasks.md)
 
 
+### Change Logs
+- [Change Logs](/docs/changelog.md)
+
+
 ### FAQ
 - [FAQ](docs/faq.md)
