@@ -49,8 +49,8 @@ class Websocket:
         logger.info('url:', self._url, 'proxy:', self._proxy, caller=self)
         session = aiohttp.ClientSession()
         self.ws = await session.ws_connect(self._url, proxy=self._proxy)
+        asyncio.get_event_loop().create_task(self.connected_callback())
         asyncio.get_event_loop().create_task(self.receive())
-        await self.connected_callback()
 
     async def _reconnect(self):
         """ 重新建立websocket连接

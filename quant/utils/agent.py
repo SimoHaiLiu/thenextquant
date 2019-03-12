@@ -19,21 +19,26 @@ class Agent(Websocket):
     """ websocket长连接代理
     """
 
-    def __init__(self, wss, proxy=None):
+    def __init__(self, wss, proxy=None, connected_callback=None, update_callback=None):
         """ 初始化
         @param wss websocket地址
         @param proxy HTTP代理
+        @param connected_callback websocket连接建立成功回调
+        @param update_callback websocket数据更新回调
         """
+        self._connected_callback = connected_callback
+        self._update_callback = update_callback
         self._queries = {}  # 未完成的请求对象 {"request_id": future}
-        self._update_callbacks = []  # 推送更新回调函数列表
 
         super(Agent, self).__init__(wss, proxy)
         self.initialize()
 
-    def register_update_callback(self, callback):
-        """ 注册行情更新回调
+    async def connected_callback(self):
+        """ websocket连接建立成功回调
         """
-        self._update_callbacks.append(callback)
+        if self._connected_callback:
+            await asyncio.sleep(0.1)  # 延迟0.1秒执行回调，等待初始化函数完成准备工作
+            await self._connected_callback()
 
     async def do_request(self, type_, option, params):
         """ 发送请求
@@ -63,8 +68,8 @@ class Agent(Websocket):
         if msg["option"] in [const.AGENT_MSG_OPT_UPDATE_ORDERBOOK, const.AGENT_MSG_OPT_UPDATE_KLINE,
                              const.AGENT_MSG_OPT_UPDATE_TICKER, const.AGENT_MSG_OPT_UPDATE_TRADE,
                              const.AGENT_MSG_OPT_UPDATE_ASSET, const.AGENT_MSG_OPT_UPDATE_ORDER]:
-            for callback in self._update_callbacks:
-                await asyncio.get_event_loop().create_task(callback(msg["type"], msg["option"], msg["data"]))
+            if self._update_callback:
+                asyncio.get_event_loop().create_task(self._update_callback(msg["type"], msg["option"], msg["data"]))
             return
         request_id = msg["request_id"]
         if request_id in self._queries:

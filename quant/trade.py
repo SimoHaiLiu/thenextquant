@@ -15,7 +15,6 @@ from quant import const
 from quant.utils import tools
 from quant.utils import logger
 from quant.config import config
-from quant.utils import decorator
 from quant.utils.agent import Agent
 from quant.heartbeat import heartbeat
 from quant.order import Order, ORDER_TYPE_MARKET, ORDER_TYPE_LIMIT, ORDER_ACTION_BUY, ORDER_ACTION_SELL, \
@@ -26,7 +25,8 @@ class Trade:
     """ 交易模块
     """
 
-    def __init__(self, platform, account, access_key, secret_key, symbol, strategy, order_update_interval=2):
+    def __init__(self, platform, account, access_key, secret_key, symbol, strategy, asset_update_callback=None,
+                 order_update_callback=None, order_update_interval=2):
         """ 初始化
         @param platform 交易平台
         @param account 交易账户
@@ -34,6 +34,10 @@ class Trade:
         @param secret_key 私钥
         @param symbol 交易对
         @param strategy 策略名称
+        @param asset_update_callback 资产更新回调函数，默认订阅资产更新事件，此事件将每隔10秒推送一次资产更新数据
+                此函数为 async 异步函数，回调参数为asset对象，如: async def callback_func_asset(asset): pass
+        @param order_update_callback 订单更新回调函数
+                此函数为 async 异步函数，回调参数为order对象，如: async def callback_func_order(order): pass
         @param order_update_interval 检查订单更新时间间隔(秒)
         """
         self._platform = platform
@@ -43,61 +47,58 @@ class Trade:
         self._symbol = symbol
         self._strategy = strategy
         self._order_update_interval = order_update_interval
+        self._asset_update_callback = asset_update_callback
+        self._order_update_callback = order_update_callback
 
         url = config.service.get("Trade", {}).get("wss", "wss://thenextquant.com/ws/trade")
-        self._agent = Agent(url)
+        self._agent = Agent(url, connected_callback=self._do_auth, update_callback=self._on_event_data_update)
 
         # 订单对象
-        self._orders = {}   # 订单列表 key:order_no, value:order_object
+        self._orders = {}  # 订单列表 key:order_no, value:order_object
 
-        # 回调函数列表
-        self._callback_funcs = []
+        # 资产对象
+        self._assets = {}  # {"BTC": {"total": "3.33", "free": "2.22", "locked: "1.11"}, ...}
 
         # 定时回调 查询订单状态
-        heartbeat.register(self.check_order_update, self._order_update_interval)
+        heartbeat.register(self._check_order_update, self._order_update_interval)
 
-        # 定时回调 请求登陆
-        self._login_task_id = heartbeat.register(self.auth, 1)
         self._is_logined = False  # 账户是否授权
-        self._is_logining = False  # 账户是否正在授权
+
+    @property
+    def assets(self):
+        return copy.copy(self._assets)
 
     @property
     def orders(self):
         return copy.copy(self._orders)
 
-    def register_callback(self, callback):
-        """ 订单更新回调
-        @param callback 回调函数(回调参数为更新的订单对象)
-            async def callback_func(order):
-                pass
-        """
-        self._callback_funcs.append(callback)
-
-    @decorator.async_method_locker("Trade.login")
-    async def auth(self, *args, **kwargs):
+    async def _do_auth(self):
         """ 登陆账户
         * NOTE: 和TradeProxy建立连接之后，将立即回执行登陆请求
         """
-        if self._is_logining:
-            return
-        self._is_logining = True
-        if self._is_logined:
-            heartbeat.unregister(self._login_task_id)  # 取消定时登陆回调
-            return
         params = {
             "platform": self._platform,
             "account": self._account,
             "access_key": self._access_key,
             "secret_key": self._secret_key
         }
-        ok, _, result = await self._agent.do_request("trade", const.AGENT_MSG_OPT_AUTH, params)
+        ok, msg, result = await self._agent.do_request("trade", const.AGENT_MSG_OPT_AUTH, params)
         if not ok:
-            logger.error("auth error!", "platform:", self._platform, "account:", self._account, "result:", result,
-                         caller=self)
-        else:
-            self._is_logined = True
-            logger.debug("auth success!", "platform:", self._platform, "account:", self._account, caller=self)
-        self._is_logining = False
+            logger.error("auth error! msg:", msg, "result:", result, caller=self)
+            return
+        self._is_logined = True
+        logger.debug("auth success!", "platform:", self._platform, "account:", self._account, caller=self)
+
+        # 授权成功之后，订阅资产
+        params = {
+            "platform": self._platform,
+            "account": self._account
+        }
+        ok, msg, result = await self._agent.do_request("trade", const.AGENT_MSG_OPT_SUB_ASSET, params)
+        if not ok:
+            logger.info("subscribe asset failed! msg:", msg, "result:", result, caller=self)
+            return
+        logger.debug("subscribe asset success! platform:", self._platform, "account:", self._account, caller=self)
 
     async def get_asset(self):
         """ 获取当前资产信息
@@ -187,7 +188,7 @@ class Trade:
         logger.info("symbol:", self._symbol, "order_nos:", order_nos, caller=self)
         return result["success"], result["failed"]
 
-    async def check_order_update(self, *args, **kwargs):
+    async def _check_order_update(self, *args, **kwargs):
         """ 检查订单更新
         """
         if not self._is_logined:
@@ -255,8 +256,8 @@ class Trade:
                 order.update(status, remain)
 
                 # 执行回调
-                for func in self._callback_funcs:
-                    await asyncio.get_event_loop().create_task(func(copy.copy(order)))
+                if self._order_update_callback:
+                    await asyncio.get_event_loop().create_task(self._order_update_callback(copy.copy(order)))
 
                 # 删除已完成订单
                 if order.status in [ORDER_STATUS_FILLED, ORDER_STATUS_CANCELED, ORDER_STATUS_FAILED]:
@@ -276,6 +277,26 @@ class Trade:
             logger.error("get open orders error! symbol:", self._symbol, caller=self)
             return None
         return results
+
+    async def _on_event_data_update(self, type_, option, data):
+        """ websocket数据推送更新
+        @param type_ 消息类型
+        @param option 操作类型
+        @param data 数据
+        """
+        # 资产更新推送
+        if option == const.AGENT_MSG_OPT_UPDATE_ASSET:
+            if data["platform"] != self._platform:
+                logger.error("receive asset error! asset:", data, caller=self)
+            if data["account"] != self._account:
+                logger.error("receive asset error! asset:", data, caller=self)
+            self._assets = data["assets"]
+            if self._asset_update_callback:
+                await self._asset_update_callback(data["assets"])
+
+        # 订单更新推送
+        elif option == const.AGENT_MSG_OPT_UPDATE_ORDER:
+            pass
 
     async def _get_order_by_order_no(self, order_no):
         """ 根据订单号获取订单数据 如果没找到，那么从数据库提取数据出来重置数据
