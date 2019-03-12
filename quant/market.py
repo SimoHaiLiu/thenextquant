@@ -27,8 +27,7 @@ class Market:
 
     def __init__(self):
         url = config.service.get("Market", {}).get("wss", "wss://thenextquant.com/ws/market")
-        self._agent = Agent(url)
-        self._agent.register_update_callback(self._on_event_market)
+        self._agent = Agent(url, update_callback=self._on_event_market)
         self._callbacks = {}  # 行情订阅回调函数
 
     def subscribe(self, market_type, platform, symbol, callback):
