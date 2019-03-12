@@ -109,5 +109,6 @@ class Market:
         return callbacks
 
     def _generate_callback_key(self, option, platform, symbol):
-        key = "{o}_{p}_{s}".format(o=option, p=platform, s=symbol)
+        market_type = option.split(".")[-1]
+        key = "{t}_{p}_{s}".format(t=market_type, p=platform, s=symbol)
         return key
