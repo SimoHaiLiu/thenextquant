@@ -34,13 +34,12 @@ class MyStrategy:
         """ 初始化
         """
         self.market = Market()
-        self.trader = Trade(self.platform, self.account, self.access_key, self.secret_key, self.symbol, self.name)
+        self.trader = Trade(self.platform, self.account, self.access_key, self.secret_key, self.symbol, self.name,
+                            asset_update_callback=self.on_event_asset_update,
+                            order_update_callback=self.on_event_order_update)
 
         # 订阅行情
-        self.market.subscribe(const.MARKET_TYPE_ORDERBOOK, const.BINANCE, self.symbol, self.on_event_orderbook_update)
-
-        # 注册订单状态更新回调
-        self.trader.register_callback(self.on_event_order_update)
+        self.market.subscribe(Market.ORDERBOOK, const.BINANCE, self.symbol, self.on_event_orderbook_update)
 
     async def on_event_orderbook_update(self, orderbook):
         """ 订单薄更新
@@ -67,6 +66,11 @@ class MyStrategy:
         self.order_no = order_no
         self.create_order_price = price
         logger.info("create new order:", order_no, caller=self)
+
+    async def on_event_asset_update(self, asset):
+        """ 资产更新
+        """
+        logger.info("asset:", asset, caller=self)
 
     async def on_event_order_update(self, order):
         """ 订单状态更新
