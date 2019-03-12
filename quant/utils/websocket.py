@@ -48,7 +48,11 @@ class Websocket:
     async def _connect(self):
         logger.info('url:', self._url, 'proxy:', self._proxy, caller=self)
         session = aiohttp.ClientSession()
-        self.ws = await session.ws_connect(self._url, proxy=self._proxy)
+        try:
+            self.ws = await session.ws_connect(self._url, proxy=self._proxy)
+        except aiohttp.client_exceptions.ClientConnectorError:
+            logger.error("connect to Agent Server error! url:", self._url, caller=self)
+            return
         asyncio.get_event_loop().create_task(self.connected_callback())
         asyncio.get_event_loop().create_task(self.receive())
 
