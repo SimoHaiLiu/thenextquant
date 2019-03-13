@@ -43,5 +43,5 @@ heartbeat.unregister(task_id)  # 假设此定时任务已经不需要，那么�
 
 > 注意:
 - 回调函数 `function_callback` 必须是 `async` 异步的，且入参必须包含 `*args` 和 `**kwargs`；
-- 回调时间间隔为秒，默认为1秒；
-- 回调函数将会在心跳执行的时候被执，因此可以对心跳次数 `kwargs["heart_beat_count"]` 取余，来确定是否该执行当前任务；
+- 回调时间间隔 `callback_interval` 为秒，默认为1秒；
+- 回调函数将会在心跳执行的时候被执行，因此可以对心跳次数 `heartbeat.count` 取余，来确定是否该执行当前任务；
