@@ -5,12 +5,10 @@
 
 Author: HuangTao
 Date:   2019/02/16
-Update: None
 """
 
 import asyncio
 
-from quant import const
 from quant.utils import tools
 from quant.utils.websocket import Websocket
 
@@ -40,16 +38,14 @@ class Agent(Websocket):
             await asyncio.sleep(0.1)  # 延迟0.1秒执行回调，等待初始化函数完成准备工作
             await self._connected_callback()
 
-    async def do_request(self, type_, option, params):
+    async def do_request(self, option, params):
         """ 发送请求
-        @param type_ 消息类型
         @param option 操作类型
         @param params 请求参数
         """
         request_id = tools.get_uuid1()
         data = {
-            "request_id": request_id,
-            "type": type_,
+            "id": request_id,
             "option": option,
             "params": params
         }
@@ -65,15 +61,12 @@ class Agent(Websocket):
     async def process(self, msg):
         """ 处理消息
         """
-        if msg["option"] in [const.AGENT_MSG_OPT_UPDATE_ORDERBOOK, const.AGENT_MSG_OPT_UPDATE_KLINE,
-                             const.AGENT_MSG_OPT_UPDATE_TICKER, const.AGENT_MSG_OPT_UPDATE_TRADE,
-                             const.AGENT_MSG_OPT_UPDATE_ASSET, const.AGENT_MSG_OPT_UPDATE_ORDER]:
-            if self._update_callback:
-                asyncio.get_event_loop().create_task(self._update_callback(msg["type"], msg["option"], msg["data"]))
-            return
-        request_id = msg["request_id"]
+        request_id = msg.get("id")
         if request_id in self._queries:
             f = self._queries.pop(request_id)
             if f.done():
                 return
             f.set_result(msg)
+        else:
+            if self._update_callback:
+                asyncio.get_event_loop().create_task(self._update_callback(msg["option"], msg["data"]))

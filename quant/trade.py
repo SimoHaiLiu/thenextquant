@@ -5,7 +5,6 @@
 
 Author: HuangTao
 Date:   2018/05/13
-Update: None
 """
 
 import copy
@@ -82,7 +81,7 @@ class Trade:
             "access_key": self._access_key,
             "secret_key": self._secret_key
         }
-        ok, msg, result = await self._agent.do_request("trade", const.AGENT_MSG_OPT_AUTH, params)
+        ok, msg, result = await self._agent.do_request(const.AGENT_MSG_OPT_AUTH, params)
         if not ok:
             logger.error("auth error! msg:", msg, "result:", result, caller=self)
             return
@@ -94,7 +93,7 @@ class Trade:
             "platform": self._platform,
             "account": self._account
         }
-        ok, msg, result = await self._agent.do_request("trade", const.AGENT_MSG_OPT_SUB_ASSET, params)
+        ok, msg, result = await self._agent.do_request(const.AGENT_MSG_OPT_SUB_ASSET, params)
         if not ok:
             logger.info("subscribe asset failed! msg:", msg, "result:", result, caller=self)
             return
@@ -110,7 +109,7 @@ class Trade:
             "platform": self._platform,
             "account": self._account
         }
-        success, _, results = await self._agent.do_request("trade", const.AGENT_MSG_OPT_ASSET, params)
+        success, _, results = await self._agent.do_request(const.AGENT_MSG_OPT_ASSET, params)
         if not success:
             logger.error("get asset error! platform:", self._platform, "account:", self._account, caller=self)
             return None
@@ -143,7 +142,7 @@ class Trade:
             "quantity": quantity,
             "order_type": order_type
         }
-        success, _, result = await self._agent.do_request("trade", const.AGENT_MSG_OPT_CREATE_OREDER, params)
+        success, _, result = await self._agent.do_request(const.AGENT_MSG_OPT_CREATE_OREDER, params)
         if not success:
             logger.error('create order error! strategy:', self._strategy, 'symbol:', self._symbol, 'action:', action,
                          'price:', price, 'quantity:', quantity, 'order_type:', order_type, "result:", result,
@@ -181,7 +180,7 @@ class Trade:
             "symbol": self._symbol,
             "order_nos": list(order_nos)
         }
-        success, _, result = await self._agent.do_request("trade", const.AGENT_MSG_OPT_REVOKE_ORDER, params)
+        success, _, result = await self._agent.do_request(const.AGENT_MSG_OPT_REVOKE_ORDER, params)
         if not success:
             logger.error("revoke order error! order_nos:", order_nos, "order_nos:", order_nos, caller=self)
             return [], list(order_nos)
@@ -207,7 +206,7 @@ class Trade:
                 "symbol": self._symbol,
                 "order_nos": nos
             }
-            success, _, results = await self._agent.do_request("trade", const.AGENT_MSG_OPT_ORDER_STATUS, params)
+            success, _, results = await self._agent.do_request(const.AGENT_MSG_OPT_ORDER_STATUS, params)
             if not success:
                 logger.error("get order status error!", "symbol:", self._symbol, "order_nos:", order_nos,
                              "results:", results, caller=self)
@@ -272,15 +271,14 @@ class Trade:
         params = {
             "symbol": self._symbol
         }
-        success, _, results = await self._agent.do_request("trade", const.AGENT_MSG_OPT_OPEN_ORDERS, params)
+        success, _, results = await self._agent.do_request(const.AGENT_MSG_OPT_OPEN_ORDERS, params)
         if not success:
             logger.error("get open orders error! symbol:", self._symbol, caller=self)
             return None
         return results
 
-    async def _on_event_data_update(self, type_, option, data):
+    async def _on_event_data_update(self, option, data):
         """ websocket数据推送更新
-        @param type_ 消息类型
         @param option 操作类型
         @param data 数据
         """

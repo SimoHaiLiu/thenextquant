@@ -5,7 +5,6 @@
 
 Author: HuangTao
 Date:   2018/07/31
-Update: None
 """
 
 
@@ -30,13 +29,10 @@ BITSTAMP = "bitstamp"
 GEMINI = "gemini"
 FOTA = "fota"
 BIBOX = "bibox"
-
-# 自定义
-CUSTOM = "custom"
+CUSTOM = "custom"  # 自定义
 
 
 # 行情
-AGENT_MSG_TYPE_MARKET           = "market"
 AGENT_MSG_OPT_SUB_ORDERBOOK     = "subscribe.orderbook"     # 订阅 orderbook
 AGENT_MSG_OPT_UNSUB_ORDERBOOK   = "unsubscribe.orderbook"   # 取消订阅 orderbook
 AGENT_MSG_OPT_UPDATE_ORDERBOOK  = "update.orderbook"        # 更新推送 orderbook
@@ -52,16 +48,18 @@ AGENT_MSG_OPT_UPDATE_TICKER     = "update.ticker"           # 更新推送 ticke
 
 
 # 交易
-AGENT_MSG_TYPE_TRADE            = "trade"                   # 交易
 AGENT_MSG_OPT_AUTH              = "auth"                    # 账户授权
 AGENT_MSG_OPT_ASSET             = "asset"                   # 获取资产
 AGENT_MSG_OPT_CREATE_OREDER     = "create_order"            # 创建订单
 AGENT_MSG_OPT_REVOKE_ORDER      = "revoke_order"            # 撤销订单
 AGENT_MSG_OPT_ORDER_STATUS      = "order_status"            # 查询订单状态
 AGENT_MSG_OPT_OPEN_ORDERS       = "open_orders"             # 查询未完全成交订单号列表
-AGENT_MSG_OPT_SUB_ASSET         = "subscribe.asset"         # 订阅 asset
-AGENT_MSG_OPT_UNSUB_ASSET       = "unsubscribe.asset"       # 取消订阅 asset
-AGENT_MSG_OPT_UPDATE_ASSET      = "update.asset"            # 更新推送 asset
-AGENT_MSG_OPT_SUB_ORDER         = "subscribe.order"         # 订阅 order
-AGENT_MSG_OPT_UNSUB_ORDER       = "unsubscribe.order"       # 取消订阅 order
-AGENT_MSG_OPT_UPDATE_ORDER      = "update.order"            # 更新推送 order
+AGENT_MSG_OPT_SUB_ASSET         = "subscribe.asset"         # 订阅 资产
+AGENT_MSG_OPT_UNSUB_ASSET       = "unsubscribe.asset"       # 取消订阅 资产
+AGENT_MSG_OPT_UPDATE_ASSET      = "update.asset"            # 更新推送 资产
+AGENT_MSG_OPT_SUB_ORDER         = "subscribe.order"         # 订阅 订单
+AGENT_MSG_OPT_UNSUB_ORDER       = "unsubscribe.order"       # 取消订阅 订单
+AGENT_MSG_OPT_UPDATE_ORDER      = "update.order"            # 更新推送 订单
+AGENT_MSG_OPT_SUB_POSITION      = "subscribe.position"      # 订阅 持仓
+AGENT_MSG_OPT_UNSUB_POSITION    = "unsubscribe.position"    # 取消订阅 持仓
+AGENT_MSG_OPT_UPDATE_POSITION   = "update.position"         # 更新推送 持仓

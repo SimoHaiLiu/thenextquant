@@ -5,7 +5,6 @@
 
 Author: HuangTao
 Date:   2019/02/16
-Update: None
 """
 
 import asyncio
@@ -56,7 +55,7 @@ class Market:
             "platform": platform,
             "symbol": symbol
         }
-        asyncio.get_event_loop().create_task(self._agent.do_request(const.AGENT_MSG_TYPE_MARKET, op, params))
+        asyncio.get_event_loop().create_task(self._agent.do_request(op, params))
 
     def unsubscribe(self, market_type, platform, symbol):
         """ 取消订阅行情
@@ -79,11 +78,10 @@ class Market:
             "platform": platform,
             "symbol": symbol
         }
-        asyncio.get_event_loop().create_task(self._agent.do_request(const.AGENT_MSG_TYPE_MARKET, op, params))
+        asyncio.get_event_loop().create_task(self._agent.do_request(op, params))
 
-    async def _on_event_market(self, type_, option, data):
+    async def _on_event_market(self, option, data):
         """ 行情数据回调
-        @param type_ agent消息类型
         @param option 操作类型
         @param data 返回数据
         """
