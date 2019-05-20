@@ -1,320 +1,86 @@
 # -*- coding:utf-8 -*-
 
 """
-交易模块
+Trade 交易模块，整合所有交易所为一体
 
 Author: HuangTao
-Date:   2018/05/13
+Date:   2019/04/21
 """
 
-import copy
-import asyncio
-
-from quant import const
-from quant.utils import tools
 from quant.utils import logger
-from quant.config import config
-from quant.utils.agent import Agent
-from quant.heartbeat import heartbeat
-from quant.order import Order, ORDER_TYPE_MARKET, ORDER_TYPE_LIMIT, ORDER_ACTION_BUY, ORDER_ACTION_SELL, \
-    ORDER_STATUS_SUBMITTED, ORDER_STATUS_CANCELED, ORDER_STATUS_FILLED, ORDER_STATUS_PARTIAL_FILLED, ORDER_STATUS_FAILED
+from quant.order import ORDER_TYPE_LIMIT
+from quant.const import OKEX_FUTURE, DERIBIT, BITMEX
+# from quant.platform.bitmex.trade import BitmexTrade
+from quant.platform.deribit import DeribitTrade
+# from quant.platform.okex_future.trade import OKExFutureTrade
 
 
 class Trade:
     """ 交易模块
     """
 
-    def __init__(self, platform, account, access_key, secret_key, symbol, strategy, asset_update_callback=None,
-                 order_update_callback=None, order_update_interval=2):
+    def __init__(self, strategy, platform, symbol, order_update_callback=None,
+                 position_update_callback=None, **kwargs):
         """ 初始化
-        @param platform 交易平台
-        @param account 交易账户
-        @param access_key 公钥
-        @param secret_key 私钥
-        @param symbol 交易对
         @param strategy 策略名称
-        @param asset_update_callback 资产更新回调函数，默认订阅资产更新事件，此事件将每隔10秒推送一次资产更新数据
-                此函数为 async 异步函数，回调参数为asset对象，如: async def callback_func_asset(asset): pass
-        @param order_update_callback 订单更新回调函数
-                此函数为 async 异步函数，回调参数为order对象，如: async def callback_func_order(order): pass
-        @param order_update_interval 检查订单更新时间间隔(秒)
+        @param platform 交易平台
+        @param symbol 交易对
+        @param order_update_callback 订单更新回调
+        @param position_update_callback 持仓更新回调
         """
         self._platform = platform
-        self._account = account
-        self._access_key = access_key
-        self._secret_key = secret_key
-        self._symbol = symbol
         self._strategy = strategy
-        self._order_update_interval = order_update_interval
-        self._asset_update_callback = asset_update_callback
-        self._order_update_callback = order_update_callback
+        self._symbol = symbol
 
-        url = config.service.get("Trade", {}).get("wss", "wss://thenextquant.com/ws/trade")
-        self._agent = Agent(url, connected_callback=self._do_auth, update_callback=self._on_event_data_update)
-
-        # 订单对象
-        self._orders = {}  # 订单列表 key:order_no, value:order_object
-
-        # 资产对象
-        self._assets = {}  # {"BTC": {"total": "3.33", "free": "2.22", "locked: "1.11"}, ...}
-
-        # 定时回调 查询订单状态
-        heartbeat.register(self._check_order_update, self._order_update_interval)
-
-        self._is_logined = False  # 账户是否授权
+        if platform == OKEX_FUTURE:
+            self._t = OKExFutureTrade(kwargs["account"], strategy, symbol, kwargs["host"], kwargs["wss"],
+                                      kwargs["access_key"], kwargs["secret_key"], kwargs["passphrase"],
+                                      order_update_callback=order_update_callback,
+                                      position_update_callback=position_update_callback)
+        elif platform == DERIBIT:
+            self._t = DeribitTrade(kwargs["account"], strategy, symbol, kwargs["host"], kwargs["wss"],
+                                   kwargs["access_key"], kwargs["secret_key"],
+                                   order_update_callback=order_update_callback,
+                                   position_update_callback=position_update_callback)
+        elif platform == BITMEX:
+            self._t = BitmexTrade(kwargs["account"], strategy, symbol, kwargs["host"], kwargs["wss"],
+                                  kwargs["access_key"], kwargs["secret_key"],
+                                  order_update_callback=order_update_callback,
+                                  position_update_callback=position_update_callback)
+        else:
+            logger.error("platform error:", platform, caller=self)
+            exit(-1)
 
     @property
-    def assets(self):
-        return copy.copy(self._assets)
+    def position(self):
+        return self._t.position
 
     @property
     def orders(self):
-        return copy.copy(self._orders)
-
-    async def _do_auth(self):
-        """ 登陆账户
-        * NOTE: 和TradeProxy建立连接之后，将立即回执行登陆请求
-        """
-        params = {
-            "platform": self._platform,
-            "account": self._account,
-            "access_key": self._access_key,
-            "secret_key": self._secret_key
-        }
-        ok, msg, result = await self._agent.do_request(const.AGENT_MSG_OPT_AUTH, params)
-        if not ok:
-            logger.error("auth error! msg:", msg, "result:", result, caller=self)
-            return
-        self._is_logined = True
-        logger.debug("auth success!", "platform:", self._platform, "account:", self._account, caller=self)
-
-        # 授权成功之后，订阅资产
-        params = {
-            "platform": self._platform,
-            "account": self._account
-        }
-        ok, msg, result = await self._agent.do_request(const.AGENT_MSG_OPT_SUB_ASSET, params)
-        if not ok:
-            logger.info("subscribe asset failed! msg:", msg, "result:", result, caller=self)
-            return
-        logger.debug("subscribe asset success! platform:", self._platform, "account:", self._account, caller=self)
-
-    async def get_asset(self):
-        """ 获取当前资产信息
-        """
-        if not self._is_logined:
-            logger.warn("not auth! platform:", self._platform, "account:", self._account, caller=self)
-            return
-        params = {
-            "platform": self._platform,
-            "account": self._account
-        }
-        success, _, results = await self._agent.do_request(const.AGENT_MSG_OPT_ASSET, params)
-        if not success:
-            logger.error("get asset error! platform:", self._platform, "account:", self._account, caller=self)
-            return None
-        return results
+        return self._t.orders
 
     async def create_order(self, action, price, quantity, order_type=ORDER_TYPE_LIMIT):
         """ 创建委托单
-        @param action 操作类型 BUY买/SELL卖
+        @param action 交易方向 BUY/SELL
         @param price 委托价格
-        @param quantity 委托数量
-        @param order_type 委托单类型 LMT限价单/MKT市价单
+        @param quantity 委托数量(当为负数时，代表合约操作空单)
+        @param order_type 委托类型 LIMIT/MARKET
+        @return order_no, error 如果成功，order_no为委托单号，error为None，否则order_no为None，error为失败信息
         """
-        if not self._is_logined:
-            logger.warn("not auth! platform:", self._platform, "account:", self._account, caller=self)
-            return
-        if action not in [ORDER_ACTION_BUY, ORDER_ACTION_SELL]:
-            logger.error('action error! action:', action, caller=self)
-            return
-        if order_type not in [ORDER_TYPE_MARKET, ORDER_TYPE_LIMIT]:
-            logger.error('order_type error! order_type:', order_type, caller=self)
-            return
-
-        # 创建订单
-        price = tools.float_to_str(price)
-        quantity = tools.float_to_str(quantity)
-        params = {
-            "symbol": self._symbol,
-            "action": action,
-            "price": price,
-            "quantity": quantity,
-            "order_type": order_type
-        }
-        success, _, result = await self._agent.do_request(const.AGENT_MSG_OPT_CREATE_OREDER, params)
-        if not success:
-            logger.error('create order error! strategy:', self._strategy, 'symbol:', self._symbol, 'action:', action,
-                         'price:', price, 'quantity:', quantity, 'order_type:', order_type, "result:", result,
-                         caller=self)
-            return None
-
-        order_no = result["order_no"]
-        infos = {
-            'platform': self._platform,
-            'account': self._account,
-            'strategy': self._strategy,
-            'order_no': order_no,
-            'symbol': self._symbol,
-            'action': action,
-            'price': price,
-            'quantity': quantity,
-            'order_type': order_type
-        }
-        order = Order(**infos)
-
-        # 增加订单到订单列表
-        self._add_order(order)
-        logger.info('order:', order, caller=self)
-        return order_no
+        order_no, error = await self._t.create_order(action, price, quantity, order_type)
+        return order_no, error
 
     async def revoke_order(self, *order_nos):
         """ 撤销委托单
-        @param order_nos 委托单号（支持传入单个或多个）
-        @return success, failed 撤单成功的订单号列表，撤单失败的订单号列表
+        @param order_nos 订单号列表，可传入任意多个，如果不传入，那么就撤销所有订单
+        @return (success, error) success为撤单成功列表，error为撤单失败的列表
         """
-        if not self._is_logined:
-            logger.warn("not auth! platform:", self._platform, "account:", self._account, caller=self)
-            return
-        params = {
-            "symbol": self._symbol,
-            "order_nos": list(order_nos)
-        }
-        success, _, result = await self._agent.do_request(const.AGENT_MSG_OPT_REVOKE_ORDER, params)
-        if not success:
-            logger.error("revoke order error! order_nos:", order_nos, "order_nos:", order_nos, caller=self)
-            return [], list(order_nos)
-        logger.info("symbol:", self._symbol, "order_nos:", order_nos, caller=self)
-        return result["success"], result["failed"]
+        success, error = await self._t.revoke_order(*order_nos)
+        return success, error
 
-    async def _check_order_update(self, *args, **kwargs):
-        """ 检查订单更新
+    async def get_open_order_nos(self):
+        """ 获取未完成委托单id列表
+        @return (result, error) result为成功获取的未成交订单列表，error如果成功为None，如果不成功为错误信息
         """
-        if not self._is_logined:
-            return
-        # 获取需要查询的订单列表
-        order_nos = list(self._orders.keys())
-        logger.info('length:', len(order_nos), 'orders:', order_nos, caller=self)
-        if not order_nos:  # 暂时没有需要更新的委托单，那么延迟1秒，再次发布执行委托单更新事件
-            logger.debug('no find any order nos', caller=self)
-            return
-
-        # 获取订单最新状态，每次最多请求50个订单
-        while order_nos:
-            nos = order_nos[:100]
-            params = {
-                "symbol": self._symbol,
-                "order_nos": nos
-            }
-            success, _, results = await self._agent.do_request(const.AGENT_MSG_OPT_ORDER_STATUS, params)
-            if not success:
-                logger.error("get order status error!", "symbol:", self._symbol, "order_nos:", order_nos,
-                             "results:", results, caller=self)
-            await self._process_order_update_infos(results)
-            order_nos = order_nos[100:]
-
-    async def _process_order_update_infos(self, results):
-        """ 处理委托单更新
-        @param results 获取的委托单状态
-        """
-        for detail in results:
-            if not detail:
-                logger.warn('detail is none!', caller=self)
-                return
-            status_updated = False
-            order_no = detail.get("order_no")
-            status = detail["status"]
-            remain = detail["remain"]
-            order = await self._get_order_by_order_no(order_no)
-            if not order:
-                continue
-
-            # 已提交
-            if status == ORDER_STATUS_SUBMITTED:
-                if order.status != status:
-                    status_updated = True
-            # 订单部分成交
-            elif status == ORDER_STATUS_PARTIAL_FILLED:
-                if order.remain != float(remain):
-                    status_updated = True
-            # 订单成交完成
-            elif status == ORDER_STATUS_FILLED:
-                status_updated = True
-            # 订单取消
-            elif status == ORDER_STATUS_CANCELED:
-                status_updated = True
-            # 订单成交失败
-            elif status == ORDER_STATUS_FAILED:
-                status_updated = True
-            else:
-                logger.warn('status error! order_no:', order.order_no, 'status:', order.status, caller=self)
-                continue
-
-            # 有状态更新 更新数据库订单信息
-            if status_updated:
-                order.update(status, remain)
-
-                # 执行回调
-                if self._order_update_callback:
-                    await asyncio.get_event_loop().create_task(self._order_update_callback(copy.copy(order)))
-
-                # 删除已完成订单
-                if order.status in [ORDER_STATUS_FILLED, ORDER_STATUS_CANCELED, ORDER_STATUS_FAILED]:
-                    self._remove_order(order.order_no)
-
-    async def get_open_orders(self):
-        """ 获取未完全成交的订单
-        """
-        if not self._is_logined:
-            logger.warn("not auth! platform:", self._platform, "account:", self._account, caller=self)
-            return
-        params = {
-            "symbol": self._symbol
-        }
-        success, _, results = await self._agent.do_request(const.AGENT_MSG_OPT_OPEN_ORDERS, params)
-        if not success:
-            logger.error("get open orders error! symbol:", self._symbol, caller=self)
-            return None
-        return results
-
-    async def _on_event_data_update(self, option, data):
-        """ websocket数据推送更新
-        @param option 操作类型
-        @param data 数据
-        """
-        # 资产更新推送
-        if option == const.AGENT_MSG_OPT_UPDATE_ASSET:
-            if data["platform"] != self._platform:
-                logger.error("receive asset error! asset:", data, caller=self)
-            if data["account"] != self._account:
-                logger.error("receive asset error! asset:", data, caller=self)
-            self._assets = data["assets"]
-            if self._asset_update_callback:
-                await self._asset_update_callback(data["assets"])
-
-        # 订单更新推送
-        elif option == const.AGENT_MSG_OPT_UPDATE_ORDER:
-            pass
-
-    async def _get_order_by_order_no(self, order_no):
-        """ 根据订单号获取订单数据 如果没找到，那么从数据库提取数据出来重置数据
-        @param order_no 订单号
-        """
-        order = self._orders.get(order_no)
-        if not order:
-            return None
-        return order
-
-    def _add_order(self, order):
-        """ 将新的订单添加的订单列表
-        @param order 新订单对象
-        """
-        if not order or order.order_no in self._orders:
-            return
-        self._orders[order.order_no] = order
-
-    def _remove_order(self, order_no):
-        """ 移除订单
-        """
-        if order_no in self._orders:
-            del self._orders[order_no]
+        result, error = await self._t.get_open_order_nos()
+        return result, error

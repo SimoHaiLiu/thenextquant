@@ -5,7 +5,6 @@ websocket接口封装
 
 Author: HuangTao
 Date:   2018/06/29
-Update: 2018/10/30  1. 数据处理函数采用异步任务，避免处理异常导致程序退出；
 """
 
 import json
@@ -14,6 +13,7 @@ import asyncio
 
 from quant.utils import tools
 from quant.utils import logger
+from quant.config import config
 from quant.heartbeat import heartbeat
 
 
@@ -21,15 +21,13 @@ class Websocket:
     """ websocket接口封装
     """
 
-    def __init__(self, url, proxy=None, check_conn_interval=10, send_hb_interval=10):
+    def __init__(self, url, check_conn_interval=10, send_hb_interval=10):
         """ 初始化
         @param url 建立websocket的地址
-        @param proxy http代理
         @param check_conn_interval 检查websocket连接时间间隔
         @param send_hb_interval 发送心跳时间间隔
         """
         self._url = url
-        self._proxy = proxy
         self._ws = None  # websocket连接对象
         self._check_conn_interval = check_conn_interval
         self._send_hb_interval = send_hb_interval
@@ -46,12 +44,13 @@ class Websocket:
         asyncio.get_event_loop().run_until_complete(self._connect())
 
     async def _connect(self):
-        logger.info('url:', self._url, 'proxy:', self._proxy, caller=self)
+        logger.info("url:", self._url, caller=self)
+        proxy = config.proxy
         session = aiohttp.ClientSession()
         try:
-            self.ws = await session.ws_connect(self._url, proxy=self._proxy)
+            self.ws = await session.ws_connect(self._url, proxy=proxy)
         except aiohttp.client_exceptions.ClientConnectorError:
-            logger.error("connect to Agent Server error! url:", self._url, caller=self)
+            logger.error("connect to server error! url:", self._url, caller=self)
             return
         asyncio.get_event_loop().create_task(self.connected_callback())
         asyncio.get_event_loop().create_task(self.receive())
@@ -59,7 +58,7 @@ class Websocket:
     async def _reconnect(self):
         """ 重新建立websocket连接
         """
-        logger.warn('reconnecting websocket right now!', caller=self)
+        logger.warn("reconnecting websocket right now!", caller=self)
         await self._connect()
 
     async def connected_callback(self):
@@ -82,13 +81,13 @@ class Websocket:
             elif msg.type == aiohttp.WSMsgType.BINARY:
                 await asyncio.get_event_loop().create_task(self.process_binary(msg.data))
             elif msg.type == aiohttp.WSMsgType.CLOSED:
-                logger.warn('receive event CLOSED:', msg, caller=self)
+                logger.warn("receive event CLOSED:", msg, caller=self)
                 await asyncio.get_event_loop().create_task(self._reconnect())
                 return
             elif msg.type == aiohttp.WSMsgType.ERROR:
-                logger.error('receive event ERROR:', msg, caller=self)
+                logger.error("receive event ERROR:", msg, caller=self)
             else:
-                logger.warn('unhandled msg:', msg, caller=self)
+                logger.warn("unhandled msg:", msg, caller=self)
 
     async def process(self, msg):
         """ 处理websocket上接收到的消息 text 类型
@@ -107,7 +106,7 @@ class Websocket:
         """
         # 检查websocket连接是否关闭，如果关闭，那么立即重连
         if not self.ws:
-            logger.warn('websocket connection not connected yet!', caller=self)
+            logger.warn("websocket connection not connected yet!", caller=self)
             return
         if self.ws.closed:
             await asyncio.get_event_loop().create_task(self._reconnect())
@@ -122,6 +121,6 @@ class Websocket:
             elif isinstance(self.heartbeat_msg, str):
                 await self.ws.send_str(self.heartbeat_msg)
             else:
-                logger.error('send heartbeat msg failed! heartbeat msg:', self.heartbeat_msg, caller=self)
+                logger.error("send heartbeat msg failed! heartbeat msg:", self.heartbeat_msg, caller=self)
                 return
-            logger.debug('send ping message:', self.heartbeat_msg, caller=self)
+            logger.debug("send ping message:", self.heartbeat_msg, caller=self)

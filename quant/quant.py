@@ -1,11 +1,10 @@
 # -*- coding:utf-8 -*-
 
 """
-初始化日志、数据库连接、启动服务器心跳
+初始化日志、数据库、消息队列、启动服务器心跳
 
 Author: HuangTao
 Date:   2017/04/26
-Update: None
 """
 
 import asyncio
@@ -22,7 +21,6 @@ class Quant:
         """ 初始化
         """
         self.loop = None
-        self.event_center = None
 
     def initialize(self, config_module=None):
         """ 初始化
@@ -38,7 +36,7 @@ class Quant:
     def start(self):
         """ 启动
         """
-        logger.info('start io loop ...', caller=self)
+        logger.info("start io loop ...", caller=self)
         self.loop.run_forever()
 
     def _get_event_loop(self):
@@ -56,12 +54,12 @@ class Quant:
     def _init_logger(self):
         """ 初始化日志
         """
-        console = config.log.get('console', True)  # 是否打印日志到命令行
-        level = config.log.get('level', 'DEBUG')  # 打印日志的级别
-        path = config.log.get('path', '/tmp/logs/QuantX')  # 日志文件存放的路径
-        name = config.log.get('name', 'quantx.log')  # 日志文件名
-        clear = config.log.get('clear', False)  # 是否清理历史日志
-        backup_count = config.log.get('backup_count', 0)  # 保存按天分割的日志文件个数
+        console = config.log.get("console", True)  # 是否打印日志到命令行
+        level = config.log.get("level", "DEBUG")  # 打印日志的级别
+        path = config.log.get("path", "/tmp/logs/Quant")  # 日志文件存放的路径
+        name = config.log.get("name", "quant.log")  # 日志文件名
+        clear = config.log.get("clear", False)  # 是否清理历史日志
+        backup_count = config.log.get("backup_count", 0)  # 保存按天分割的日志文件个数
         if console:
             logger.initLogger(level)
         else:
@@ -72,21 +70,21 @@ class Quant:
         """
         if config.mongodb:
             from quant.utils.mongo import initMongodb
-            logger.info('mongodb config:', config.mongodb, caller=self)
+            logger.debug("mongodb config:", config.mongodb, caller=self)
             initMongodb(**config.mongodb)
         if config.redis:
             from quant.utils.redis import initRedisPool
-            logger.info('redis config:', config.redis, caller=self)
+            logger.debug("redis config:", config.redis, caller=self)
             self.loop.run_until_complete(initRedisPool(**config.redis))
 
     def _init_event_center(self):
         """ 初始化事件中心
         """
         if config.rabbitmq:
-            logger.info('rabbitmq config:', config.rabbitmq, caller=self)
+            logger.debug("rabbitmq config:", config.rabbitmq, caller=self)
             from quant.event import EventCenter
-            self.event_center = EventCenter()
-            self.loop.run_until_complete(self.event_center.connect())
+            event_center = EventCenter()
+            self.loop.run_until_complete(event_center.connect())
             config.initialize()  # 订阅配置更新事件
 
     def _do_heartbeat(self):

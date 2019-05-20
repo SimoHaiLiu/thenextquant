@@ -5,7 +5,6 @@
 
 Author: HuangTao
 Date:   2018/04/26
-Update: None
 """
 
 import asyncio
@@ -14,7 +13,7 @@ from quant.utils import tools
 from quant.utils import logger
 from quant.config import config
 
-__all__ = ('heartbeat', )
+__all__ = ("heartbeat", )
 
 
 class HeartBeat(object):
@@ -24,8 +23,8 @@ class HeartBeat(object):
     def __init__(self):
         self._count = 0  # 心跳次数
         self._interval = 1  # 服务心跳执行时间间隔(秒)
-        self._print_interval = config.heartbeat.get('interval', 0)  # 心跳打印时间间隔(秒)，0为不打印
-        self._broadcast_interval = config.heartbeat.get('broadcast', 0)  # 心跳广播间隔(秒)，0为不广播
+        self._print_interval = config.heartbeat.get("interval", 0)  # 心跳打印时间间隔(秒)，0为不打印
+        self._broadcast_interval = config.heartbeat.get("broadcast", 0)  # 心跳广播间隔(秒)，0为不广播
         self._tasks = {}  # 跟随心跳执行的回调任务列表，由 self.register 注册 {task_id: {...}}
 
     @property
@@ -40,20 +39,20 @@ class HeartBeat(object):
         # 打印心跳次数
         if self._print_interval > 0:
             if self._count % self._print_interval == 0:
-                logger.info('do server heartbeat, count:', self._count, caller=self)
+                logger.info("do server heartbeat, count:", self._count, caller=self)
 
         # 设置下一次心跳回调
         asyncio.get_event_loop().call_later(self._interval, self.ticker)
 
         # 执行任务回调
         for task in self._tasks.values():
-            interval = task['interval']
+            interval = task["interval"]
             if self._count % interval != 0:
                 continue
-            func = task['func']
-            args = task['args']
-            kwargs = task['kwargs']
-            kwargs['heart_beat_count'] = self._count
+            func = task["func"]
+            args = task["args"]
+            kwargs = task["kwargs"]
+            kwargs["heart_beat_count"] = self._count
             asyncio.get_event_loop().create_task(func(*args, **kwargs))
 
         # 广播服务进程心跳
@@ -68,10 +67,10 @@ class HeartBeat(object):
         @return task_id 任务id
         """
         t = {
-            'func': func,
-            'interval': interval,
-            'args': args,
-            'kwargs': kwargs
+            "func": func,
+            "interval": interval,
+            "args": args,
+            "kwargs": kwargs
         }
         task_id = tools.get_uuid1()
         self._tasks[task_id] = t

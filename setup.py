@@ -8,6 +8,7 @@ setup(
     version="0.0.3",
     packages=["quant",
               "quant.utils",
+              "quant.platform",
               ],
     description="Quant Trader Framework",
     url="https://github.com/TheNextQuant/thenextquant",
