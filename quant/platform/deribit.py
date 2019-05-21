@@ -72,7 +72,6 @@ class DeribitTrade(Websocket):
         LoopRunTask.register(self._check_position_update, 1)  # 获取持仓
 
         self._ok = False  # 是否建立授权成功的websocket连接
-        self._push_position = False  # 是否已经推送过持仓（启动第一次推送）
 
     @property
     def position(self):
@@ -286,26 +285,24 @@ class DeribitTrade(Websocket):
         success, error = await self.get_position()
         if error:
             return
+        if not self._position.utime:  # 如果持仓还没有被初始化，那么初始化之后推送一次
+            update = True
         size = int(success["size"])
         average_price = float(success["average_price"])
         liquid_price = float(success["estimated_liquidation_price"])
         if size > 0:
             if self._position.long_quantity != size:
                 update = True
-                self._position.long_quantity = size
+                self._position.update(0, 0, 0, size, average_price, liquid_price)
         elif size < 0:
             if self._position.short_quantity != abs(size):
                 update = True
-                self._position.short_quantity = abs(size)
+                self._position.update(abs(size), average_price, liquid_price)
         elif size == 0:
             if self._position.long_quantity != 0 or self._position.short_quantity != 0:
                 update = True
-                self._position.long_quantity = 0
-                self._position.short_quantity = 0
-        self._position.average_price = average_price
-        self._position.liquid_price = liquid_price
-        if update or not self._push_position:
-            self._push_position = True
+                self._position.update()
+        if update:
             await self._position_update_callback(self._position)
 
     def _update_order(self, order_info):
