@@ -60,11 +60,12 @@ class Order:
     def __str__(self):
         info = "[platform: {platform}, account: {account}, strategy: {strategy}, order_no: {order_no}, " \
                "action: {action}, symbol: {symbol}, price: {price}, quantity: {quantity}, remain: {remain}, " \
-               "status: {status}, avg_price: {avg_price}, order_type: {order_type}, trade_type:{trade_type}]".format(
+               "status: {status}, avg_price: {avg_price}, order_type: {order_type}, trade_type: {trade_type}, " \
+               "ctime: {ctime}, utime: {utime}]".format(
             platform=self.platform, account=self.account, strategy=self.strategy, order_no=self.order_no,
             action=self.action, symbol=self.symbol, price=self.price, quantity=self.quantity,
             remain=self.remain, status=self.status, avg_price=self.avg_price, order_type=self.order_type,
-            trade_type=self.trade_type)
+            trade_type=self.trade_type, ctime=self.ctime, utime=self.utime)
         return info
 
     def __repr__(self):
