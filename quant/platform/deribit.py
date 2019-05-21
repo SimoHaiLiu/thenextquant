@@ -15,8 +15,8 @@ import asyncio
 from quant.utils import logger
 from quant.const import DERIBIT
 from quant.position import Position
-from quant.tasks import LoopRunTask
 from quant.utils.websocket import Websocket
+from quant.tasks import LoopRunTask, SingleTask
 from quant.utils.decorator import async_method_locker
 from quant.order import Order
 from quant.order import ORDER_ACTION_BUY, ORDER_ACTION_SELL
@@ -100,7 +100,7 @@ class DeribitTrade(Websocket):
         for order_info in success:
             order = self._update_order(order_info)
             if self._order_update_callback:
-                asyncio.get_event_loop().create_task(self._order_update_callback(order))
+                SingleTask.run(self._order_update_callback, order)
 
         # 获取持仓
         await self._check_position_update()
@@ -301,7 +301,7 @@ class DeribitTrade(Websocket):
                 order_info = msg["params"]["data"]
                 order = self._update_order(order_info)
                 if self._order_update_callback:
-                    asyncio.get_event_loop().create_task(self._order_update_callback(copy.copy(order)))
+                    SingleTask.run(self._order_update_callback, copy.copy(order))
 
     async def _check_position_update(self, *args, **kwargs):
         """ 定时获取持仓
