@@ -189,25 +189,38 @@ class DeribitTrade(Websocket):
         @param order_nos 订单号，如果没有指定订单号，那么撤销所有订单
         * NOTE: 单次调换最多只能撤销100个订单，如果订单超过100个，请多次调用
         """
-        success, error = [], []
-        if len(order_nos) > 0:
+        # 如果传入order_nos为空，即撤销全部委托单
+        if len(order_nos) == 0:
+            method = "private/cancel_all_by_instrument"
+            params = {"instrument_name": self._symbol}
+            success, error = await self._send_message(method, params)
+            if error:
+                return False, error
+            else:
+                return True, None
+
+        # 如果传入order_nos为一个委托单号，那么只撤销一个委托单
+        if len(order_nos) == 1:
+            method = "private/cancel"
+            params = {"order_id": order_nos[0]}
+            success, error = await self._send_message(method, params)
+            if error:
+                return order_nos[0], error
+            else:
+                return order_nos[0], None
+
+        # 如果传入order_nos数量大于1，那么就批量撤销传入的委托单
+        if len(order_nos) > 1:
+            success, error = [], []
             method = "private/cancel"
             for order_no in order_nos:
                 params = {"order_id": order_no}
-                r, ok = await self._send_message(method, params)
-                if not ok:
-                    error.append(r)
+                r, e = await self._send_message(method, params)
+                if e:
+                    error.append((order_no, e))
                 else:
-                    success.append(r)
-        else:
-            method = "private/cancel_all_by_instrument"
-            params = {"instrument_name": self._symbol}
-            r, ok = await self._send_message(method, params)
-            if ok:
-                success.append(r)
-            else:
-                error.append(r)
-        return success, error
+                    success.append(order_no)
+            return success, error
 
     async def get_order_status(self, order_no):
         """ 获取订单状态
@@ -287,6 +300,7 @@ class DeribitTrade(Websocket):
             return
         if not self._position.utime:  # 如果持仓还没有被初始化，那么初始化之后推送一次
             update = True
+            self._position.update()
         size = int(success["size"])
         average_price = float(success["average_price"])
         liquid_price = float(success["estimated_liquidation_price"])
