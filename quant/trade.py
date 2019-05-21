@@ -65,7 +65,7 @@ class Trade:
         @param price 委托价格
         @param quantity 委托数量(当为负数时，代表合约操作空单)
         @param order_type 委托类型 LIMIT/MARKET
-        @return order_no, error 如果成功，order_no为委托单号，error为None，否则order_no为None，error为失败信息
+        @return (order_no, error) 如果成功，order_no为委托单号，error为None，否则order_no为None，error为失败信息
         """
         order_no, error = await self._t.create_order(action, price, quantity, order_type)
         return order_no, error

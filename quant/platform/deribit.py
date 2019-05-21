@@ -239,6 +239,20 @@ class DeribitTrade(Websocket):
         success, error = await self._send_message(method, params)
         return success, error
 
+    async def get_open_order_nos(self):
+        """ 获取未完全成交订单号列表
+        """
+        method = "private/get_open_orders_by_instrument"
+        params = {"instrument_name": self._symbol}
+        success, error = await self._send_message(method, params)
+        if error:
+            return None, error
+        else:
+            order_nos = []
+            for item in success:
+                order_nos.append(item["order_id"])
+            return order_nos, None
+
     async def _send_message(self, method, params):
         """ 发送消息
         """
