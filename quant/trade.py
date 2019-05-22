@@ -20,8 +20,8 @@ class Trade:
     """ 交易模块
     """
 
-    def __init__(self, strategy, platform, symbol, order_update_callback=None,
-                 position_update_callback=None, **kwargs):
+    def __init__(self, strategy, platform, symbol, host=None, wss=None, account=None, access_key=None, secret_key=None,
+                 passphrase=None, order_update_callback=None, position_update_callback=None, **kwargs):
         """ 初始化
         @param strategy 策略名称
         @param platform 交易平台
@@ -34,17 +34,14 @@ class Trade:
         self._symbol = symbol
 
         if platform == OKEX:
-            self._t = OKExTrade(kwargs["account"], strategy, symbol, kwargs["host"], kwargs["wss"],
-                                kwargs["access_key"], kwargs["secret_key"], kwargs["passphrase"],
+            self._t = OKExTrade(account, strategy, symbol, host, wss, access_key, secret_key, passphrase,
                                 order_update_callback=order_update_callback)
         elif platform == OKEX_FUTURE:
-            self._t = OKExFutureTrade(kwargs["account"], strategy, symbol, kwargs["host"], kwargs["wss"],
-                                      kwargs["access_key"], kwargs["secret_key"], kwargs["passphrase"],
+            self._t = OKExFutureTrade(account, strategy, symbol, host, wss, access_key, secret_key, passphrase,
                                       order_update_callback=order_update_callback,
                                       position_update_callback=position_update_callback)
         elif platform == DERIBIT:
-            self._t = DeribitTrade(kwargs["account"], strategy, symbol, kwargs["host"], kwargs["wss"],
-                                   kwargs["access_key"], kwargs["secret_key"],
+            self._t = DeribitTrade(account, strategy, symbol, host, wss, access_key, secret_key,
                                    order_update_callback=order_update_callback,
                                    position_update_callback=position_update_callback)
         elif platform == BITMEX:

@@ -17,6 +17,7 @@ class MyStrategy:
     def __init__(self):
         """ 初始化
         """
+        self.strategy = "my_strategy"
         self.platform = BINANCE
         self.account = config.platforms.get(self.platform, {}).get("account")
         self.access_key = config.platforms.get(self.platform, {}).get("access_key")
@@ -34,7 +35,7 @@ class MyStrategy:
         """ 初始化
         """
         self.market = Market()
-        self.trader = Trade(self.platform, self.account, self.access_key, self.secret_key, self.symbol, self.name,
+        self.trader = Trade(self.strategy, self.platform, self.symbol, self.account,
                             asset_update_callback=self.on_event_asset_update,
                             order_update_callback=self.on_event_order_update)
 

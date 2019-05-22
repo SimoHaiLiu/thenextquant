@@ -199,8 +199,8 @@ class OKExTrade(Websocket):
         self._strategy = strategy
         self._platform = OKEX
         self._symbol = symbol
-        self._host = host
-        self._wss = wss
+        self._host = host if host else "https://www.okex.com"
+        self._wss = wss if wss else "wss://real.okex.com:10442/ws/v3"
         self._access_key = access_key
         self._secret_key = secret_key
         self._passphrase = passphrase
