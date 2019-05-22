@@ -36,7 +36,6 @@ class AsyncHttpRequests(object):
         if not kwargs.get("proxy"):
             kwargs["proxy"] = config.proxy  # HTTP代理配置
         try:
-            logger.debug("method:", method, "url:", url, "params:", params, "body:", body, "data:", data, caller=cls)
             if method == "GET":
                 response = await session.get(url, params=params, headers=headers, timeout=timeout, **kwargs)
             elif method == "POST":
@@ -52,7 +51,8 @@ class AsyncHttpRequests(object):
                 error = "http method error!"
                 return None, None, error
         except Exception as e:
-            logger.error("Error:", e, caller=cls)
+            logger.error("method:", method, "url:", url, "params:", params, "body:", body, "data:", data, "Error:", e,
+                         caller=cls)
             return None, None, e
         code = response.status
         if code not in (200, 201, 202, 203, 204, 205, 206):

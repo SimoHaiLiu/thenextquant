@@ -13,7 +13,7 @@ from quant.const import OKEX, OKEX_FUTURE, DERIBIT, BITMEX
 from quant.platform.okex import OKExTrade
 # from quant.platform.bitmex.trade import BitmexTrade
 from quant.platform.deribit import DeribitTrade
-# from quant.platform.okex_future.trade import OKExFutureTrade
+from quant.platform.okex_future import OKExFutureTrade
 
 
 class Trade:
