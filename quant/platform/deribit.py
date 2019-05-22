@@ -321,11 +321,11 @@ class DeribitTrade(Websocket):
         if size > 0:
             if self._position.long_quantity != size:
                 update = True
-                self._position.update(0, 0, 0, size, average_price, liquid_price)
+                self._position.update(0, 0, size, average_price, liquid_price)
         elif size < 0:
             if self._position.short_quantity != abs(size):
                 update = True
-                self._position.update(abs(size), average_price, liquid_price)
+                self._position.update(abs(size), average_price, 0, 0, liquid_price)
         elif size == 0:
             if self._position.long_quantity != 0 or self._position.short_quantity != 0:
                 update = True

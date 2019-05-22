@@ -6,7 +6,6 @@ https://www.okex.com/docs/zh/
 
 Author: HuangTao
 Date:   2019/01/19
-Update: None
 """
 
 import time
