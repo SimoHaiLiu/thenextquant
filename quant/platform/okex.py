@@ -309,7 +309,7 @@ class OKExTrade(Websocket):
 
     async def revoke_order(self, *order_nos):
         """ 撤销订单
-        @param order_nos 订单号，可传入任意多个，如果不传入，那么就撤销所有订单
+        @param order_nos 订单号列表，可传入任意多个，如果不传入，那么就撤销所有订单
         * NOTE: 单次调用最多只能撤销4个订单，如果订单超过4个，请多次调用
         """
         # 如果传入order_nos为空，即撤销全部委托单
