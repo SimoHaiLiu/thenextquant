@@ -343,6 +343,18 @@ class OKExTrade(Websocket):
                     success.append(order_no)
             return success, error
 
+    async def get_open_order_nos(self):
+        """ 获取未完全成交订单号列表
+        """
+        success, error = await self._rest_api.get_open_orders(self._raw_symbol)
+        if error:
+            return None, error
+        else:
+            order_nos = []
+            for order_info in success:
+                order_nos.append(order_info["order_id"])
+            return order_nos, None
+
     def _update_order(self, order_info):
         """ 更新订单信息
         @param order_info 订单信息
