@@ -72,10 +72,6 @@ class Quant:
             from quant.utils.mongo import initMongodb
             logger.debug("mongodb config:", config.mongodb, caller=self)
             initMongodb(**config.mongodb)
-        if config.redis:
-            from quant.utils.redis import initRedisPool
-            logger.debug("redis config:", config.redis, caller=self)
-            self.loop.run_until_complete(initRedisPool(**config.redis))
 
     def _init_event_center(self):
         """ 初始化事件中心

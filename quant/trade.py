@@ -9,7 +9,8 @@ Date:   2019/04/21
 
 from quant.utils import logger
 from quant.order import ORDER_TYPE_LIMIT
-from quant.const import OKEX_FUTURE, DERIBIT, BITMEX
+from quant.const import OKEX, OKEX_FUTURE, DERIBIT, BITMEX
+from quant.platform.okex import OKExTrade
 # from quant.platform.bitmex.trade import BitmexTrade
 from quant.platform.deribit import DeribitTrade
 # from quant.platform.okex_future.trade import OKExFutureTrade
@@ -32,7 +33,11 @@ class Trade:
         self._strategy = strategy
         self._symbol = symbol
 
-        if platform == OKEX_FUTURE:
+        if platform == OKEX:
+            self._t = OKExTrade(kwargs["account"], strategy, symbol, kwargs["host"], kwargs["wss"],
+                                kwargs["access_key"], kwargs["secret_key"], kwargs["passphrase"],
+                                order_update_callback=order_update_callback)
+        elif platform == OKEX_FUTURE:
             self._t = OKExFutureTrade(kwargs["account"], strategy, symbol, kwargs["host"], kwargs["wss"],
                                       kwargs["access_key"], kwargs["secret_key"], kwargs["passphrase"],
                                       order_update_callback=order_update_callback,

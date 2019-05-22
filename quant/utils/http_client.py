@@ -5,13 +5,13 @@ aiohttp client接口封装
 
 Author: HuangTao
 Date:   2018/05/03
-Update: 2018/09/18  1. 新增fetch方法；
 """
 
 import aiohttp
 from urllib.parse import urlparse
 
 from quant.utils import logger
+from quant.config import config
 
 
 class AsyncHttpRequests(object):
@@ -27,60 +27,75 @@ class AsyncHttpRequests(object):
         @param url 请求的url
         @param params 请求的uri参数
         @param body 请求的body参数
+        @param data json格式的数据
         @param headers 请求的headers
         @param timeout 超时时间(秒)
+        @return (code, success, error) 如果成功，error为None，失败success为None，error为失败信息
         """
         session = cls._get_session(url)
-        if method == 'GET':
-            response = await session.get(url, params=params, headers=headers, timeout=timeout, **kwargs)
-        elif method == 'POST':
-            response = await session.post(url, params=params, data=body, json=data, headers=headers, timeout=timeout, **kwargs)
-        elif method == 'PUT':
-            response = await session.put(url, params=params, data=body, json=data, headers=headers, timeout=timeout, **kwargs)
-        elif method == 'DELETE':
-            response = await session.delete(url, params=params, data=body, json=data, headers=headers, timeout=timeout, **kwargs)
-        else:
-            logger.error('http method error! method:', method, 'url:', url, caller=cls)
-            return None
-        if response.status not in (200, 201, 202, 203, 204, 205, 206):
-            result = await response.text()
-            logger.error('method:', method, 'url:', url, 'params:', params, 'body:', body, 'headers:', headers,
-                         'code:', response.status, 'result:', result, caller=cls)
-            return None
+        if not kwargs.get("proxy"):
+            kwargs["proxy"] = config.proxy  # HTTP代理配置
+        try:
+            logger.debug("method:", method, "url:", url, "params:", params, "body:", body, "data:", data, caller=cls)
+            if method == "GET":
+                response = await session.get(url, params=params, headers=headers, timeout=timeout, **kwargs)
+            elif method == "POST":
+                response = await session.post(url, params=params, data=body, json=data, headers=headers,
+                                              timeout=timeout, **kwargs)
+            elif method == "PUT":
+                response = await session.put(url, params=params, data=body, json=data, headers=headers,
+                                             timeout=timeout, **kwargs)
+            elif method == "DELETE":
+                response = await session.delete(url, params=params, data=body, json=data, headers=headers,
+                                                timeout=timeout, **kwargs)
+            else:
+                error = "http method error!"
+                return None, None, error
+        except Exception as e:
+            logger.error("Error:", e, caller=cls)
+            return None, None, e
+        code = response.status
+        if code not in (200, 201, 202, 203, 204, 205, 206):
+            text = await response.text()
+            logger.error("method:", method, "url:", url, "params:", params, "body:", body, "headers:", headers,
+                         "code:", code, "result:", text, caller=cls)
+            return code, None, text
         try:
             result = await response.json()
         except:
-            logger.warn('response data is not json format!', 'method:', method, 'url:', url, 'params:', params,
+            logger.warn("response data is not json format!", "method:", method, "url:", url, "params:", params,
                         caller=cls)
             result = await response.text()
-        return result
+        logger.debug("method:", method, "url:", url, "params:", params, "body:", body, "data:", data,
+                     "code:", code, "result:", result, caller=cls)
+        return code, result, None
 
     @classmethod
-    async def get(cls, url, params=None, headers=None, timeout=30, **kwargs):
+    async def get(cls, url, params=None, body=None, data=None, headers=None, timeout=30, **kwargs):
         """ HTTP GET 请求
         """
-        result = await cls.fetch('GET', url, params=params, headers=headers, timeout=timeout, **kwargs)
+        result = await cls.fetch("GET", url, params, body, data, headers, timeout, **kwargs)
         return result
 
     @classmethod
-    async def post(cls, url, params=None, body=None, headers=None, timeout=30, **kwargs):
+    async def post(cls, url, params=None, body=None, data=None, headers=None, timeout=30, **kwargs):
         """ HTTP POST 请求
         """
-        result = await cls.fetch('POST', url, params=params, body=body, headers=headers, timeout=timeout, **kwargs)
+        result = await cls.fetch("POST", url, params, body, data, headers, timeout, **kwargs)
         return result
 
     @classmethod
-    async def delete(cls, url, params=None, body=None, headers=None, timeout=30, **kwargs):
+    async def delete(cls, url, params=None, body=None, data=None, headers=None, timeout=30, **kwargs):
         """ HTTP DELETE 请求
         """
-        result = await cls.fetch('DELETE', url, params=params, body=body, headers=headers, timeout=timeout, **kwargs)
+        result = await cls.fetch("DELETE", url, params, body, data, headers, timeout, **kwargs)
         return result
 
     @classmethod
-    async def put(cls, url, params=None, body=None, headers=None, timeout=30, **kwargs):
+    async def put(cls, url, params=None, body=None, data=None, headers=None, timeout=30, **kwargs):
         """ HTTP PUT 请求
         """
-        result = await cls.fetch('PUT', url, params=params, body=body, headers=headers, timeout=timeout, **kwargs)
+        result = await cls.fetch("PUT", url, params, body, data, headers, timeout, **kwargs)
         return result
 
     @classmethod

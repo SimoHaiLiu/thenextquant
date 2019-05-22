@@ -10,7 +10,6 @@ Update: None
 
 from quant.utils import tools
 from quant.utils.mongo import MongoDBBase
-from quant.utils.redis import exec_redis_cmd
 
 
 class TickerData(MongoDBBase):

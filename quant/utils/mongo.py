@@ -20,18 +20,18 @@ from quant.utils import tools
 from quant.utils import logger
 
 
-__all__ = ('initMongodb', 'MongoDBBase', )
+__all__ = ("initMongodb", "MongoDBBase", )
 
 
 MONGO_CONN = None
-DELETE_FLAG = 'delete'  # True 已经删除，False 或者没有该字段表示没有删除
+DELETE_FLAG = "delete"  # True 已经删除，False 或者没有该字段表示没有删除
 
 
-def initMongodb(host='127.0.0.1', port=27017, username='', password='', dbname='admin'):
+def initMongodb(host="127.0.0.1", port=27017, username="", password="", dbname="admin"):
     """ 初始化mongodb连接
     """
     if username and password:
-        uri = 'mongodb://{username}:{password}@{host}:{port}/{dbname}'.format(username=quote_plus(username),
+        uri = "mongodb://{username}:{password}@{host}:{port}/{dbname}".format(username=quote_plus(username),
                                                                               password=quote_plus(password),
                                                                               host=quote_plus(host),
                                                                               port=port,
@@ -41,7 +41,7 @@ def initMongodb(host='127.0.0.1', port=27017, username='', password='', dbname='
     mongo_client = motor.motor_asyncio.AsyncIOMotorClient(uri)
     global MONGO_CONN
     MONGO_CONN = mongo_client
-    logger.info('create mongodb connection pool.')
+    logger.info("create mongodb connection pool.")
 
 
 class MongoDBBase(object):
@@ -70,13 +70,13 @@ class MongoDBBase(object):
         """
         if not cursor:
             cursor = self._cursor
-        if '_id' in spec:
-            spec['_id'] = self._convert_id_object(spec['_id'])
-        spec[DELETE_FLAG] = {'$ne': True}
+        if "_id" in spec:
+            spec["_id"] = self._convert_id_object(spec["_id"])
+        spec[DELETE_FLAG] = {"$ne": True}
         datas = []
         result = cursor.find(spec, fields, sort=sort, skip=skip, limit=limit)
         async for item in result:
-            item['_id'] = str(item['_id'])
+            item["_id"] = str(item["_id"])
             datas.append(item)
         return datas
 
@@ -103,7 +103,7 @@ class MongoDBBase(object):
         """
         if not cursor:
             cursor = self._cursor
-        spec[DELETE_FLAG] = {'$ne': True}
+        spec[DELETE_FLAG] = {"$ne": True}
         n = await cursor.count(spec)
         return n
 
@@ -123,10 +123,10 @@ class MongoDBBase(object):
             docs = [docs]
             is_one = True
         for doc in docs:
-            doc['_id'] = ObjectId()
-            doc['create_time'] = create_time
-            doc['update_time'] = create_time
-            ret_ids.append(str(doc['_id']))
+            doc["_id"] = ObjectId()
+            doc["create_time"] = create_time
+            doc["update_time"] = create_time
+            ret_ids.append(str(doc["_id"]))
         cursor.insert_many(docs)
         if is_one:
             return ret_ids[0]
@@ -145,12 +145,12 @@ class MongoDBBase(object):
         if not cursor:
             cursor = self._cursor
         update_fields = copy.deepcopy(update_fields)
-        spec[DELETE_FLAG] = {'$ne': True}
-        if '_id' in spec:
-            spec['_id'] = self._convert_id_object(spec['_id'])
-        set_fields = update_fields.get('$set', {})
-        set_fields['update_time'] = tools.get_cur_timestamp()
-        update_fields['$set'] = set_fields
+        spec[DELETE_FLAG] = {"$ne": True}
+        if "_id" in spec:
+            spec["_id"] = self._convert_id_object(spec["_id"])
+        set_fields = update_fields.get("$set", {})
+        set_fields["update_time"] = tools.get_cur_timestamp()
+        update_fields["$set"] = set_fields
         if not multi:
             result = await cursor.update_one(spec, update_fields, upsert=upsert)
             return result.modified_count
@@ -166,10 +166,10 @@ class MongoDBBase(object):
         """
         if not cursor:
             cursor = self._cursor
-        spec[DELETE_FLAG] = {'$ne': True}
-        if '_id' in spec:
-            spec['_id'] = self._convert_id_object(spec['_id'])
-        update_fields = {'$set': {DELETE_FLAG: True}}
+        spec[DELETE_FLAG] = {"$ne": True}
+        if "_id" in spec:
+            spec["_id"] = self._convert_id_object(spec["_id"])
+        update_fields = {"$set": {DELETE_FLAG: True}}
         delete_count = await self.update(spec, update_fields, multi=True, cursor=cursor)
         return delete_count
 
@@ -198,9 +198,9 @@ class MongoDBBase(object):
         """
         if not cursor:
             cursor = self._cursor
-        spec[DELETE_FLAG] = {'$ne': True}
-        if '_id' in spec:
-            spec['_id'] = self._convert_id_object(spec['_id'])
+        spec[DELETE_FLAG] = {"$ne": True}
+        if "_id" in spec:
+            spec["_id"] = self._convert_id_object(spec["_id"])
         result = await cursor.distinct(key, spec)
         return result
 
@@ -216,16 +216,16 @@ class MongoDBBase(object):
         """
         if not cursor:
             cursor = self._cursor
-        spec[DELETE_FLAG] = {'$ne': True}
-        if '_id' in spec:
-            spec['_id'] = self._convert_id_object(spec['_id'])
-        set_fields = update_fields.get('$set', {})
-        set_fields['update_time'] = tools.get_cur_timestamp()
-        update_fields['$set'] = set_fields
+        spec[DELETE_FLAG] = {"$ne": True}
+        if "_id" in spec:
+            spec["_id"] = self._convert_id_object(spec["_id"])
+        set_fields = update_fields.get("$set", {})
+        set_fields["update_time"] = tools.get_cur_timestamp()
+        update_fields["$set"] = set_fields
         result = await cursor.find_one_and_update(spec, update_fields, projection=fields, upsert=upsert,
                                                   return_document=return_document)
-        if result and '_id' in result:
-            result['_id'] = str(result['_id'])
+        if result and "_id" in result:
+            result["_id"] = str(result["_id"])
         return result
 
     async def find_one_and_delete(self, spec={}, fields=None, cursor=None):
@@ -237,12 +237,12 @@ class MongoDBBase(object):
         """
         if not cursor:
             cursor = self._cursor
-        spec[DELETE_FLAG] = {'$ne': True}
-        if '_id' in spec:
-            spec['_id'] = self._convert_id_object(spec['_id'])
+        spec[DELETE_FLAG] = {"$ne": True}
+        if "_id" in spec:
+            spec["_id"] = self._convert_id_object(spec["_id"])
         result = await cursor.find_one_and_delete(spec, projection=fields)
-        if result and '_id' in result:
-            result['_id'] = str(result['_id'])
+        if result and "_id" in result:
+            result["_id"] = str(result["_id"])
         return result
 
     def _convert_id_object(self, origin):

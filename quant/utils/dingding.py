@@ -5,7 +5,6 @@
 
 Author: HuangTao
 Date:   2018/08/04
-Update: 2018/12/24  1. 增加markdown格式消息推送；
 """
 
 from quant.utils import logger
@@ -15,7 +14,7 @@ from quant.utils.http_client import AsyncHttpRequests
 class DingTalk:
     """ 钉钉机器人接口
     """
-    BASE_URL = 'https://oapi.dingtalk.com/robot/send?access_token='
+    BASE_URL = "https://oapi.dingtalk.com/robot/send?access_token="
 
     @classmethod
     async def send_text_msg(cls, access_token, content, phones=None, is_at_all=False):
@@ -26,20 +25,20 @@ class DingTalk:
         @param is_at_all 是否需要@所有人，默认为False
         """
         body = {
-            'msgtype': 'text',
-            'text': {
-                'content': content
+            "msgtype": "text",
+            "text": {
+                "content": content
             }
         }
         if is_at_all:
-            body['at'] = {'isAtAll': True}
+            body["at"] = {"isAtAll": True}
         if phones:
             assert isinstance(phones, list)
-            body['at'] = {'atMobiles': phones}
+            body["at"] = {"atMobiles": phones}
         url = cls.BASE_URL + access_token
-        headers = {'Content-Type': 'application/json'}
+        headers = {"Content-Type": "application/json"}
         result = await AsyncHttpRequests.post(url, data=body, headers=headers)
-        logger.info('url:', url, 'body:', body, 'result:', result, caller=cls)
+        logger.info("url:", url, "body:", body, "result:", result, caller=cls)
 
     @classmethod
     async def send_markdown_msg(cls, access_token, title, text, phones=None, is_at_all=False):
@@ -51,18 +50,18 @@ class DingTalk:
         @param is_at_all 是否需要@所有人，默认为False
         """
         body = {
-            'msgtype': 'markdown',
-            'markdown': {
-                'title': title,
-                'text': text
+            "msgtype": "markdown",
+            "markdown": {
+                "title": title,
+                "text": text
             }
         }
         if is_at_all:
-            body['at'] = {'isAtAll': True}
+            body["at"] = {"isAtAll": True}
         if phones:
             assert isinstance(phones, list)
-            body['at'] = {'atMobiles': phones}
+            body["at"] = {"atMobiles": phones}
         url = cls.BASE_URL + access_token
-        headers = {'Content-Type': 'application/json'}
+        headers = {"Content-Type": "application/json"}
         result = await AsyncHttpRequests.post(url, data=body, headers=headers)
-        logger.info('url:', url, 'body:', body, 'result:', result, caller=cls)
+        logger.info("url:", url, "body:", body, "result:", result, caller=cls)

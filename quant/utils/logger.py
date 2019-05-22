@@ -19,7 +19,7 @@ from logging.handlers import TimedRotatingFileHandler
 initialized = False
 
 
-def initLogger(log_level='DEBUG', log_path=None, logfile_name=None, clear=False, backup_count=0):
+def initLogger(log_level="DEBUG", log_path=None, logfile_name=None, clear=False, backup_count=0):
     """ 初始化日志输出
     @param log_level 日志级别 DEBUG/INFO
     @param log_path 日志输出路径
@@ -38,12 +38,12 @@ def initLogger(log_level='DEBUG', log_path=None, logfile_name=None, clear=False,
         if not os.path.isdir(log_path):
             os.makedirs(log_path)
         logfile = os.path.join(log_path, logfile_name)
-        handler = TimedRotatingFileHandler(logfile, 'midnight', backupCount=backup_count)
-        print('init logger ...', logfile)
+        handler = TimedRotatingFileHandler(logfile, "midnight", backupCount=backup_count)
+        print("init logger ...", logfile)
     else:
-        print('init logger ...')
+        print("init logger ...")
         handler = logging.StreamHandler()
-    fmt_str = '%(levelname)1.1s [%(asctime)s] %(message)s'
+    fmt_str = "%(levelname)1.1s [%(asctime)s] %(message)s"
     fmt = logging.Formatter(fmt=fmt_str, datefmt=None)
     handler.setFormatter(fmt)
     logger.addHandler(handler)
@@ -66,18 +66,18 @@ def debug(*args, **kwargs):
 
 
 def error(*args, **kwargs):
-    logging.error('*' * 60)
+    logging.error("*" * 60)
     msg_header, kwargs = _log_msg_header(*args, **kwargs)
     logging.error(_log(msg_header, *args, **kwargs))
-    logging.error('*' * 60)
+    logging.error("*" * 60)
 
 
 def exception(*args, **kwargs):
-    logging.error('*' * 60)
+    logging.error("*" * 60)
     msg_header, kwargs = _log_msg_header(*args, **kwargs)
     logging.error(_log(msg_header, *args, **kwargs))
     traceback.print_stack()
-    logging.error('*' * 60)
+    logging.error("*" * 60)
 
 
 def _log(msg_header, *args, **kwargs):
@@ -87,13 +87,13 @@ def _log(msg_header, *args, **kwargs):
             ps = str(l)
         else:
             try:
-                ps = '%r' % l
+                ps = "%r" % l
             except:
                 ps = str(l)
         if type(l) == str:
-            _log_msg += ps[1:-1] + ' '
+            _log_msg += ps[1:-1] + " "
         else:
-            _log_msg += ps + ' '
+            _log_msg += ps + " "
     if len(kwargs) > 0:
         _log_msg += str(kwargs)
     return _log_msg
@@ -101,23 +101,23 @@ def _log(msg_header, *args, **kwargs):
 
 def _log_msg_header(*args, **kwargs):
     """ 打印日志的message头
-    @param kwargs['caller'] 调用的方法所属类对象
+    @param kwargs["caller"] 调用的方法所属类对象
     * NOTE: logger.xxx(... caller=self) for instance method
             logger.xxx(... caller=cls) for @classmethod
     """
-    cls_name = ''
+    cls_name = ""
     func_name = sys._getframe().f_back.f_back.f_code.co_name
-    session_id = '-'
+    session_id = "-"
     try:
-        _caller = kwargs.get('caller', None)
+        _caller = kwargs.get("caller", None)
         if _caller:
-            if not hasattr(_caller, '__name__'):
+            if not hasattr(_caller, "__name__"):
                 _caller = _caller.__class__
             cls_name = _caller.__name__
-            del kwargs['caller']
+            del kwargs["caller"]
     except:
         pass
     finally:
-        msg_header = '[{session_id}] [{cls_name}.{func_name}] '.format(cls_name=cls_name, func_name=func_name,
+        msg_header = "[{session_id}] [{cls_name}.{func_name}] ".format(cls_name=cls_name, func_name=func_name,
                                                                        session_id=session_id)
         return msg_header, kwargs
