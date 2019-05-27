@@ -7,106 +7,152 @@ Author: HuangTao
 Date:   2019/02/16
 """
 
-import asyncio
+import json
 
 from quant import const
-from quant.utils import logger
-from quant.config import config
-from quant.utils.agent import Agent
+
+
+class Orderbook:
+    """ 订单薄
+    """
+
+    def __init__(self, platform=None, symbol=None, asks=None, bids=None, timestamp=None):
+        """ 初始化
+        @param platform 交易平台
+        @param symbol 交易对
+        @param asks 买盘数据 [[price, quantity], [...], ...]
+        @param bids 卖盘数据 [[price, quantity], [...], ...]
+        @param timestamp 时间戳(毫秒)
+        """
+        self.platform = platform
+        self.symbol = symbol
+        self.asks = asks
+        self.bids = bids
+        self.timestamp = timestamp
+
+    @property
+    def data(self):
+        d = {
+            "platform": self.platform,
+            "symbol": self.symbol,
+            "asks": self.asks,
+            "bids": self.bids,
+            "timestamp": self.timestamp
+        }
+        return d
+
+    def __str__(self):
+        info = json.dumps(self.data)
+        return info
+
+    def __repr__(self):
+        return str(self)
+
+
+class Trade:
+    """ 交易数据
+    """
+
+    def __init__(self, platform=None, symbol=None, action=None, price=None, quantity=None, timestamp=None):
+        """ 初始化
+        @param platform 交易平台
+        @param symbol 交易对
+        @param action 操作 BUY / SELL
+        @param price 价格
+        @param quantity 数量
+        @param timestamp 时间戳(毫秒)
+        """
+        self.platform = platform
+        self.symbol = symbol
+        self.action = action
+        self.price = price
+        self.quantity = quantity
+        self.timestamp = timestamp
+
+    @property
+    def data(self):
+        d = {
+            "platform": self.platform,
+            "symbol": self.symbol,
+            "action": self.action,
+            "price": self.price,
+            "quantity": self.quantity,
+            "timestamp": self.timestamp
+        }
+        return d
+
+    def __str__(self):
+        info = json.dumps(self.data)
+        return info
+
+    def __repr__(self):
+        return str(self)
+
+
+class Kline:
+    """ K线 1分钟
+    """
+
+    def __init__(self, platform=None, symbol=None, open=None, high=None, low=None, close=None, volume=None,
+                 timestamp=None):
+        """ 初始化
+        @param platform 平台
+        @param symbol 交易对
+        @param open 开盘价
+        @param high 最高价
+        @param low 最低价
+        @param close 收盘价
+        @param volume 成交量
+        @param timestamp 时间戳(毫秒)
+        """
+        self.platform = platform
+        self.symbol = symbol
+        self.open = open
+        self.high = high
+        self.low = low
+        self.close = close
+        self.volume = volume
+        self.timestamp = timestamp
+
+    @property
+    def data(self):
+        d = {
+            "platform": self.platform,
+            "symbol": self.symbol,
+            "open": self.open,
+            "high": self.high,
+            "low": self.low,
+            "close": self.close,
+            "volume": self.volume,
+            "timestamp": self.timestamp
+        }
+        return d
+
+    def __str__(self):
+        info = json.dumps(self.data)
+        return info
+
+    def __repr__(self):
+        return str(self)
 
 
 class Market:
-    """ 行情数据订阅模块
+    """ 行情订阅模块
     """
 
-    ORDERBOOK = "orderbook"
-    KLINE = "kline"
-    TICKER = "ticker"
-    TRADE = "trade"
-
-    def __init__(self):
-        url = config.service.get("Market", {}).get("wss", "wss://thenextquant.com/ws/market")
-        self._agent = Agent(url, update_callback=self._on_event_market)
-        self._callbacks = {}  # 行情订阅回调函数
-
-    def subscribe(self, market_type, platform, symbol, callback):
-        """ 订阅行情
+    def __init__(self, market_type, platform, symbol, callback):
+        """ 初始化
         @param market_type 行情类型
         @param platform 交易平台
         @param symbol 交易对
-        @param callback 回调函数
+        @param callback 更新回调函数
         """
-        if market_type == self.ORDERBOOK:
-            op = const.AGENT_MSG_OPT_SUB_ORDERBOOK
-        elif market_type == self.KLINE:
-            op = const.AGENT_MSG_OPT_SUB_KLINE
-        elif market_type == self.TICKER:
-            op = const.AGENT_MSG_OPT_SUB_TICKER
-        elif market_type == self.TRADE:
-            op = const.AGENT_MSG_OPT_SUB_TRADE
-        else:
-            logger.error("market type error! market_type:", market_type, caller=self)
-            return
-
-        ok = self._set_callback(op, platform, symbol, callback)
-        if ok:
-            return
-        params = {
-            "platform": platform,
-            "symbol": symbol
-        }
-        asyncio.get_event_loop().create_task(self._agent.do_request(op, params))
-
-    def unsubscribe(self, market_type, platform, symbol):
-        """ 取消订阅行情
-        @param market_type 行情类型
-        @param platform 交易平台
-        @param symbol 交易对
-        """
-        if market_type == self.ORDERBOOK:
-            op = const.AGENT_MSG_OPT_UNSUB_ORDERBOOK
-        elif market_type == self.KLINE:
-            op = const.AGENT_MSG_OPT_UNSUB_KLINE
-        elif market_type == self.TICKER:
-            op = const.AGENT_MSG_OPT_UNSUB_TICKER
-        elif market_type == self.TRADE:
-            op = const.AGENT_MSG_OPT_UNSUB_TRADE
-        else:
-            logger.error("market type error! market_type:", market_type, caller=self)
-            return
-        params = {
-            "platform": platform,
-            "symbol": symbol
-        }
-        asyncio.get_event_loop().create_task(self._agent.do_request(op, params))
-
-    async def _on_event_market(self, option, data):
-        """ 行情数据回调
-        @param option 操作类型
-        @param data 返回数据
-        """
-        callbacks = self._get_callback(option, data["platform"], data["symbol"])
-        for callback in callbacks:
-            await asyncio.get_event_loop().create_task(callback(data))
-
-    def _set_callback(self, market_type, platform, symbol, callback):
-        """ 设置回调函数
-        """
-        key = self._generate_callback_key(market_type, platform, symbol)
-        if key in self._callbacks:
-            self._callbacks[key].append(callback)
-            return True
-        else:
-            self._callbacks[key] = [callback]
-
-    def _get_callback(self, market_type, platform, symbol):
-        """ 提取回调函数
-        """
-        key = self._generate_callback_key(market_type, platform, symbol)
-        callbacks = self._callbacks.get(key, [])
-        return callbacks
-
-    def _generate_callback_key(self, option, platform, symbol):
-        market_type = option.split(".")[-1]
-        key = "{t}_{p}_{s}".format(t=market_type, p=platform, s=symbol)
-        return key
+        if market_type == const.MARKET_TYPE_ORDERBOOK:
+            from quant.event import EventOrderbook
+            EventOrderbook(platform, symbol).subscribe(callback)
+        elif market_type == const.MARKET_TYPE_TRADE:
+            from quant.event import EventTrade
+            EventTrade(platform, symbol).subscribe(callback)
+        elif market_type == const.MARKET_TYPE_KLINE:
+            from quant.event import EventKline
+            EventKline(platform, symbol).subscribe(callback)

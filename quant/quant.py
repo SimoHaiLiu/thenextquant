@@ -21,6 +21,7 @@ class Quant:
         """ 初始化
         """
         self.loop = None
+        self.event_center = None
 
     def initialize(self, config_module=None):
         """ 初始化
@@ -70,17 +71,15 @@ class Quant:
         """
         if config.mongodb:
             from quant.utils.mongo import initMongodb
-            logger.debug("mongodb config:", config.mongodb, caller=self)
             initMongodb(**config.mongodb)
 
     def _init_event_center(self):
         """ 初始化事件中心
         """
         if config.rabbitmq:
-            logger.debug("rabbitmq config:", config.rabbitmq, caller=self)
             from quant.event import EventCenter
-            event_center = EventCenter()
-            self.loop.run_until_complete(event_center.connect())
+            self.event_center = EventCenter()
+            self.loop.run_until_complete(self.event_center.connect())
             config.initialize()  # 订阅配置更新事件
 
     def _do_heartbeat(self):
