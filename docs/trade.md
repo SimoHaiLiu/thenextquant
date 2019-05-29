@@ -6,19 +6,6 @@
 策略完成下单之后，底层框架将定时或实时将最新的订单状态更新通过策略注册的回调函数传递给策略，策略能够在第一时间感知到拿到订单状态
 更新数据；
 
-框架通过一条websocket长连接和 Agent 代理服务器建立连接，并发起交易平台账户的授权请求，授权通过之后，即可以进行交易；
-
-Agent代理服务默认可以使用 wss://thenextquant.com/ws/trade 进行测试（有部分使用限制）；
-
-- Agent代理服务器配置
-```json
-{
-    "SERVICE": {
-        "Trade": {
-            "wss": "wss://thenextquant.com/ws/trade"
-        }
-    }
-}
 ```
 
 

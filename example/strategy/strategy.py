@@ -6,10 +6,10 @@ from quant import const
 from quant.utils import tools
 from quant.utils import logger
 from quant.config import config
-from quant.order import ORDER_ACTION_BUY, ORDER_STATUS_FAILED, ORDER_STATUS_CANCELED, ORDER_STATUS_FILLED
 from quant.market import Market
 from quant.trade import Trade
 from quant.const import BINANCE
+from quant.order import ORDER_ACTION_BUY, ORDER_STATUS_FAILED, ORDER_STATUS_CANCELED, ORDER_STATUS_FILLED
 
 
 class MyStrategy:
@@ -25,22 +25,16 @@ class MyStrategy:
         self.symbol = config.symbol
         self.name = config.strategy
 
-        self.market = None  # 行情模块
-        self.trader = None  # 交易模块
-
         self.order_no = None  # 创建订单的id
         self.create_order_price = "0.0"  # 创建订单的价格
 
-    def initialize(self):
-        """ 初始化
-        """
-        self.market = Market()
+        # 交易模块
         self.trader = Trade(self.strategy, self.platform, self.symbol, self.account,
                             asset_update_callback=self.on_event_asset_update,
                             order_update_callback=self.on_event_order_update)
 
         # 订阅行情
-        self.market.subscribe(Market.ORDERBOOK, const.BINANCE, self.symbol, self.on_event_orderbook_update)
+        Market(const.MARKET_TYPE_ORDERBOOK, const.BINANCE, self.symbol, self.on_event_orderbook_update)
 
     async def on_event_orderbook_update(self, orderbook):
         """ 订单薄更新

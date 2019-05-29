@@ -3,19 +3,8 @@
 通过行情模块(market)，可以订阅任意交易所的任意交易对的实时行情，包括订单薄(Orderbook)、K线(KLine)、成交(Trade)、交易(Ticker)，
 根据不同交易所提供的行情信息，实时将行情信息推送给策略；
 
-框架通过一条websocket长连接和 `Agent` 代理服务器建立连接，并发起 `订阅(Subscribe)` 和 `取消订阅(Unsubscribe)` 请求；  
-`Agent`代理服务默认可以使用 `wss://thenextquant.com/ws/market` 进行测试（有部分使用限制）；
-
-- Agent代理服务器配置
-```json
-{
-    "SERVICE": {
-        "Market": {
-            "wss": "wss://thenextquant.com/ws/market"
-        }
-    }
-}
-```
+在订阅行情之前，需要先部署 `行情服务器`，行情服务器将通过 REST API 或 Websocket 的方式从交易所获取实时行情信息，并将行情信息按照
+统一的数据格式打包，通过事件的形式发布至事件中心；
 
 
 ### 行情模块使用
@@ -23,27 +12,21 @@
 ```python
 # 导入模块
 from quant import const
-from quant.market import Market
+from quant.market import Market, Orderbook
 
-# 初始化
-market = Market()
 
-# 订阅订单薄行情，注意此处注册的回调函数是`async` 异步函数，回调参数为 `orderbook` 对象，类型为字典，数据结构查看下边的介绍。
-async def on_event_orderbook_update(orderbook): pass
-market.subscribe(Market.ORDERBOOK, const.BINANCE, "ETH/BTC", on_event_orderbook_update)
-
-# 取消订阅订单薄行情
-market.unsubscribe(Market.ORDERBOOK, const.BINANCE, "ETH/BTC")
+# 订阅订单薄行情，注意此处注册的回调函数是`async` 异步函数，回调参数为 `orderbook` 对象，数据结构查看下边的介绍。
+async def on_event_orderbook_update(orderbook: Orderbook): pass
+Market(const.MARKET_TYPE_ORDERBOOK, const.BINANCE, "ETH/BTC", on_event_orderbook_update)
 ```
 
 > 使用同样的方式，可以订阅任意的行情
 ```python
-from quant.market import Market
+from quant import const
 
-Market.ORDERBOOK  # 订单薄(Orderbook)
-Market.KLINE  # K线(KLine)
-Market.TICKER  # K线(KLine)
-Market.TRADE  # 实时挂单(Ticker)
+const.MARKET_TYPE_ORDERBOOK  # 订单薄(Orderbook)
+const.MARKET_TYPE_KLINE  # K线(KLine)
+const.MARKET_TYPE_TRADE  # K线(KLine)
 ```
 
 
@@ -55,14 +38,14 @@ Market.TRADE  # 实时挂单(Ticker)
 ```json
 {
     "platform": "binance",
-    "symbol": "ETH/BTC",
+    "symbol": "ETH/USDT",
     "asks": [
-        ["11.11", "11"]
+        ["8680.70000000", "0.00200000"]
     ],
     "bids": [
-        ["22.22", "22"]
+        ["8680.60000000", "2.82696138"]
     ],
-    "timestamp": 12345678901234
+    "timestamp": 1558949307370
 }
 ```
 
@@ -77,14 +60,14 @@ Market.TRADE  # 实时挂单(Ticker)
 #### K线(KLine)
 ```json
 {
-    "platform": "binance",
-    "symbol": "ETH/BTC",
-    "open": "11",
-    "high": "22",
-    "low": "10",
-    "close": "20",
-    "volume": "123",
-    "timestamp": 12345678901234
+    "platform": "okex",
+    "symbol": "BTC/USDT",
+    "open": "8665.50000000",
+    "high": "8668.40000000",
+    "low": "8660.00000000",
+    "close": "8660.00000000",
+    "volume": "73.14728136",
+    "timestamp": 1558946340000
 }
 ```
 
@@ -99,45 +82,22 @@ Market.TRADE  # 实时挂单(Ticker)
 - timestamp `int` 时间戳(毫秒)
 
 
-#### 交易(Ticker)
+#### 交易数据(Trade)
 ```json
 {
-    "platform": "binance",
-    "symbol": "ETH/BTC",
-    "ask": "11.11",
-    "ask_quantity": "22.22",
-    "bid": "33.33",
-    "bid_quantity": "44.44",
-    "timestamp": 12345678901234
+    "platform": "okex", 
+    "symbol": "BTC/USDT", 
+    "action": "SELL", 
+    "price": "8686.40000000", 
+    "quantity": "0.00200000", 
+    "timestamp": 1558949571111,
 }
 ```
 
 **字段说明**:
 - platform `string` 交易平台
 - symbol `string` 交易对
-- ask `string` 卖单价格
-- ask_quantity `string` 卖单数量
-- bid `string` 买单价格
-- bid_quantity `string` 买单数量
-- timestamp `int` 时间戳(毫秒)
-
-
-#### 成交(Trade)
-```json
-{
-    "platform": "binance",
-    "symbol": "ETH/BTC",
-    "action": "BUY",
-    "price": "11.11",
-    "quantity": "22.22",
-    "timestamp": 12345678901234
-}
-```
-
-**字段说明**:
-- platform `string` 交易平台
-- symbol `string` 交易对
-- action `string` 买或卖(可能有些交易所没指定，那么就是空字符串)
-- price `string` 委托价格
-- quantity `string` 委托数量
+- action `string` 操作类型 BUY 买入 / SELL 卖出
+- price `string` 价格
+- quantity `string` 数量
 - timestamp `int` 时间戳(毫秒)

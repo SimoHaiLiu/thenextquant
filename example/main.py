@@ -5,8 +5,7 @@ import sys
 
 def initialize():
     from strategy.strategy import MyStrategy
-    s = MyStrategy()
-    s.initialize()
+    MyStrategy()
 
 
 def main():
