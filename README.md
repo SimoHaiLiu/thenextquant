@@ -68,6 +68,14 @@ python src/main.py config.json
 - [定时任务 & 服务器心跳](docs/others/tasks.md)
 
 
+### 当前支持交易所
+- [Binance](https://www.binance.com)
+- [OKEx](https://www.okex.me/)
+- [OKEx Future](https://www.okex.me/future/trade)
+- [Deribit](https://www.deribit.com/)
+- To be continued ...
+
+
 ### Change Logs
 - [Change Logs](/docs/changelog.md)
 
