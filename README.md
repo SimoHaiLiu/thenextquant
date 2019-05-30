@@ -10,6 +10,7 @@
 
 - 依赖python三方包
 	- aiohttp>=3.2.1
+	- aioamqp>=0.10.0
 
 - RabbitMQ服务器
     - 事件发布、订阅

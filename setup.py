@@ -5,7 +5,7 @@ from distutils.core import setup
 
 setup(
     name="thenextquant",
-    version="0.0.5",
+    version="0.0.6",
     packages=["quant",
               "quant.utils",
               "quant.platform",
@@ -18,5 +18,6 @@ setup(
     keywords=["thenextquant", "quant"],
     install_requires=[
         "aiohttp==3.2.1",
+        "aioamqp==0.10.0",
     ],
 )
