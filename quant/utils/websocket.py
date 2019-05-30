@@ -11,7 +11,6 @@ import json
 import aiohttp
 import asyncio
 
-from quant.utils import tools
 from quant.utils import logger
 from quant.config import config
 from quant.heartbeat import heartbeat
@@ -41,7 +40,7 @@ class Websocket:
         # 注册服务 发送心跳
         heartbeat.register(self._send_heartbeat_msg, self._send_hb_interval)
         # 建立websocket连接
-        asyncio.get_event_loop().run_until_complete(self._connect())
+        asyncio.get_event_loop().create_task(self._connect())
 
     async def _connect(self):
         logger.info("url:", self._url, caller=self)
@@ -71,7 +70,6 @@ class Websocket:
         """ 接收消息
         """
         async for msg in self.ws:
-            self._last_receive_ts = tools.get_cur_timestamp()
             if msg.type == aiohttp.WSMsgType.TEXT:
                 try:
                     data = json.loads(msg.data)

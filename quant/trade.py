@@ -9,9 +9,10 @@ Date:   2019/04/21
 
 from quant.utils import logger
 from quant.order import ORDER_TYPE_LIMIT
-from quant.const import OKEX, OKEX_FUTURE, DERIBIT, BITMEX
+from quant.const import OKEX, OKEX_FUTURE, DERIBIT, BITMEX, BINANCE
 from quant.platform.okex import OKExTrade
 # from quant.platform.bitmex.trade import BitmexTrade
+from quant.platform.binance import BinanceTrade
 from quant.platform.deribit import DeribitTrade
 from quant.platform.okex_future import OKExFutureTrade
 
@@ -49,6 +50,9 @@ class Trade:
                                   kwargs["access_key"], kwargs["secret_key"],
                                   order_update_callback=order_update_callback,
                                   position_update_callback=position_update_callback)
+        elif platform == BINANCE:
+            self._t = BinanceTrade(account, strategy, symbol, host, wss, access_key, secret_key,
+                                   order_update_callback=order_update_callback)
         else:
             logger.error("platform error:", platform, caller=self)
             exit(-1)

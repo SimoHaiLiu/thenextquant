@@ -40,7 +40,7 @@ class Order:
 
     def __init__(self, account=None, platform=None, strategy=None, order_no=None, symbol=None, action=None, price=0,
                  quantity=0, remain=0, status=ORDER_STATUS_NONE, avg_price=0, order_type=ORDER_TYPE_LIMIT,
-                 trade_type=TRADE_TYPE_NONE):
+                 trade_type=TRADE_TYPE_NONE, ctime=None, utime=None):
         self.platform = platform  # 交易平台
         self.account = account  # 交易账户
         self.strategy = strategy  # 策略名称
@@ -54,8 +54,8 @@ class Order:
         self.status = status  # 委托单状态
         self.avg_price = avg_price  # 成交均价
         self.trade_type = trade_type  # 合约订单类型 开多/开空/平多/平空
-        self.ctime = tools.get_cur_timestamp()  # 创建订单时间戳
-        self.utime = None  # 交易所订单更新时间
+        self.ctime = ctime if ctime else tools.get_cur_timestamp()  # 创建订单时间戳
+        self.utime = utime if utime else tools.get_cur_timestamp()  # 交易所订单更新时间
 
     def __str__(self):
         info = "[platform: {platform}, account: {account}, strategy: {strategy}, order_no: {order_no}, " \
