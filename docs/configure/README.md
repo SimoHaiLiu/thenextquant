@@ -18,28 +18,8 @@ config.abc  # 使用配置里的abd字段
 > 所有系统配置参数均为 `大写字母` 为key;  
 > 所有系统配置参数均为 `可选`;  
 
-##### 1. SERVICE
-配置需要使用的代理服务，如果不配置，将使用默认的示例配置如下。  
 
-示例：
-```json
-{
-    "SERVICE": {
-        "Market": {
-            "wss": "wss://thenextquant.com/ws/market"
-        },
-        "Trade": {
-            "wss": "wss://thenextquant.com/ws/trade"
-        }
-    }
-}
-```
-**配置说明**:
-- Market `dict` 行情代理服务配置，可以订阅任意交易平台的任意行情数据
-- Trade `dict` 交易代理服务配置，可以在任意平台的任意交易区发起交易
-
-
-##### 2. LOG
+##### 1. LOG
 日志配置。包含如下配置：
 
 **示例**:
@@ -65,7 +45,7 @@ config.abc  # 使用配置里的abd字段
 - backup_count `int` 日志保存个数（日志按天分割，默认保留5天日志, `0`为永久保存）
 
 
-##### 3. HEARTBEAT
+##### 2. HEARTBEAT
 服务心跳配置。
 
 **示例**:
@@ -79,5 +59,44 @@ config.abc  # 使用配置里的abd字段
 ```
 
 **配置说明**:
-- interval `int` 心跳打印时间间隔(秒)，0为不打印 `可选，默认为1`
+- interval `int` 心跳打印时间间隔(秒)，0为不打印 `可选，默认为0`
 - broadcast `int` 心跳广播间隔(秒)，0为不广播 `可选，默认为0`
+
+
+##### 3. PROXY
+HTTP代理配置。
+大部分交易所在国内访问都需要翻墙，所以在国内环境需要配置HTTP代理。
+
+**示例**:
+```json
+{
+    "PROXY": "http://127.0.0.1:1087"
+}
+```
+
+**配置说明**:
+- PROXY `string` http代理，解决翻墙问题
+
+> 注意: 此配置为全局配置，将作用到任何HTTP请求；
+
+
+##### 3. RABBITMQ
+RabbitMQ代理配置。
+
+**示例**:
+```json
+{
+    "RABBITMQ": {
+        "host": "127.0.0.1",
+        "port": 5672,
+        "username": "test",
+        "password": "123456"
+    }
+}
+```
+
+**配置说明**:
+- host `string` ip地址
+- port `int` 端口
+- username `string` 用户名
+- password `string` 密码
